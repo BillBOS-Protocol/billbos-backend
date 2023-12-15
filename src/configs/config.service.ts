@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
+import { Ads } from 'src/entities/ads.entity';
 
 // require('dotenv').config();
 
@@ -38,8 +39,9 @@ class ConfigService {
       username: this.getValue('PG_USER'),
       password: this.getValue('PG_PASSWORD'),
       database: this.getValue('PG_DATABASE'),
-
-      entities: ['**/*.entity{.ts,.js}'],
+      // entities: ['**/*.entity{.ts,.js}'],
+      entities: [Ads],
+      synchronize: true,
 
       // migrationsTableName: 'migration',
 
@@ -49,7 +51,7 @@ class ConfigService {
       //   migrationsDir: 'src/migration',
       // },
 
-      ssl: this.isProduction(),
+      // ssl: this.isProduction(),
     };
   }
 }
