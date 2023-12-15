@@ -17,7 +17,7 @@ export class Ads {
   @Column()
   ads_id: string;
 
-  @Column()
+  @Column({ default: 0 })
   view: number;
 
   @CreateDateColumn({
