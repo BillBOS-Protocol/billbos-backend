@@ -1,9 +1,8 @@
+import { allowedNetwork } from 'constants/chain';
 import { ethers } from 'ethers';
 
 export const getProvider = () => {
-  // const provider = new ethers.JsonRpcProvider(allowedNetwork[0].rpcUrls[0]);
-  const RPC_URL = process.env.SEPOLIA_RPC_URL;
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
+  const provider = new ethers.JsonRpcProvider(allowedNetwork[1].rpcUrls[0]);
   return provider;
 };
 

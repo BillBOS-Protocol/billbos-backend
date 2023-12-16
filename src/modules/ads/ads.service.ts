@@ -1,15 +1,10 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAdsDTO } from './dto/createAds.dto';
 import { Repository } from 'typeorm';
 import { Ads } from 'src/entities/ads.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JsonRpcProvider, ethers } from 'ethers';
-import { getSigner } from 'utils/wallet.util';
-import { log } from 'console';
+import { ethers } from 'ethers';
+import { getProvider, getSigner } from 'utils/wallet.util';
 
 @Injectable()
 export class AdsService {
@@ -53,30 +48,23 @@ export class AdsService {
     }
   }
 
-  // async getBlock() {
-  //   const block = await this.provider.getBlockNumber();
-  //   return block;
-  // }
-
   async callGreet() {
     try {
-      const rpc = 'https://ethereum-sepolia.publicnode.com';
       const greetContractAddress = '0xe95dFbCc7F2506c664589e995d4dE74cd2CE451F';
       const abi = [
         'function setGreeting(string memory _greeting) public',
         'function greet() public view returns (string memory)',
       ];
-      const provider = new JsonRpcProvider(rpc);
-      const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+      const provider = getProvider();
+      const signer = getSigner();
       const greetContract = new ethers.Contract(
         greetContractAddress,
         abi,
         provider,
       );
       const contractSigner = greetContract.connect(signer);
-      const tx = await (contractSigner as any).setGreeting('nutnut');
+      const tx = await (contractSigner as any).setGreeting('0xnutnut');
       await tx.wait();
-      // await contractSigner.setGreeting('yoyo');
       console.log('greet =>', await (contractSigner as any).greet());
     } catch (error) {
       console.log('error =>', error);
