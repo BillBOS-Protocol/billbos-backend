@@ -4,18 +4,27 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
+import { Campaign } from './campaign.entity';
+import { ViewRecord } from './viewRecord.entity';
 
 @Entity()
-export class Ads {
+export class Ad {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  ads_id: string;
+  regist_ad_id: string;
 
-  @Column({ default: 0 })
-  view: number;
+  @ManyToOne(() => Campaign, (campaign) => campaign.ads)
+  @JoinColumn({ name: 'campaign_id' })
+  campaign: Campaign;
+
+  @OneToMany(() => ViewRecord, (viewRecord) => viewRecord.ad)
+  viewRecord: ViewRecord[];
 
   @CreateDateColumn({
     type: 'timestamp',

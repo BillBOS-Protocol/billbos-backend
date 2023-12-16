@@ -1,6 +1,12 @@
-import { IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString } from 'class-validator';
 
 export class CreateAdsDTO {
   @IsString()
-  adsId: string;
+  webpageOwnerWalletAddress: string;
+
+  @IsArray()
+  ads: string[];
+
+  @IsNumber()
+  chainId: string;
 }

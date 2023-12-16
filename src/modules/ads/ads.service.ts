@@ -1,12 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAdsDTO } from './dto/createAds.dto';
 import { Repository } from 'typeorm';
-import { Ads } from 'src/entities/ads.entity';
+import { Ad } from 'src/entities/ad.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
 import { getProvider, getSigner } from 'utils/wallet.util';
 import { Cron } from '@nestjs/schedule';
 import { contractAddress } from 'constants/contract-list';
+import { Campaign } from 'src/entities/campaign.entity';
+import { ViewRecord } from 'src/entities/viewRecord.entity';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AdsService {
@@ -21,51 +24,163 @@ export class AdsService {
   contractSigner = this.greetContract.connect(this.signer);
 
   constructor(
-    @InjectRepository(Ads)
-    private readonly adsRepository: Repository<Ads>,
+    @InjectRepository(Ad)
+    private readonly adRepository: Repository<Ad>,
+
+    @InjectRepository(Campaign)
+    private readonly campaignRepository: Repository<Campaign>,
+
+    @InjectRepository(ViewRecord)
+    private readonly viewRecordRepository: Repository<ViewRecord>,
   ) {}
 
+  // FIXME: check IP
+
   async upsertAds(createAdsDto: CreateAdsDTO) {
-    let { adsId } = createAdsDto;
-    adsId = adsId.toLowerCase();
-    if (adsId.length === 0) {
-      throw new BadRequestException(`AdsId can be empty string`);
-    }
+    //For prod
+    // const currnetMonth = dayjs().month() + 1;
+
+    //For test
+    const currentMonth = 3;
+    let ads = createAdsDto.ads;
+    let webpageOwnerWalletAddress = createAdsDto.webpageOwnerWalletAddress;
+    const { chainId } = createAdsDto;
+
+    //map lowercase
+    webpageOwnerWalletAddress = webpageOwnerWalletAddress.toLocaleLowerCase();
+    ads = ads.map((ad) => {
+      return ad.toLocaleLowerCase();
+    });
+
     try {
-      const existingAds = await this.getAdsById(adsId);
-      if (existingAds) {
-        existingAds.view++;
-        await this.adsRepository.save(existingAds);
-        return existingAds;
+      const existingCampaign = await this.getCampaignByWalletAddress(
+        webpageOwnerWalletAddress,
+      );
+
+      if (existingCampaign) {
+        for await (const adItem of ads) {
+          const existingAd = await this.getAdById(adItem, existingCampaign.id);
+
+          if (existingAd) {
+            const viewRecord = await this.getViewRecordByAdId(
+              existingAd.id,
+              currentMonth,
+            );
+
+            //case not have month
+            if (!viewRecord) {
+              const viewRecord = this.viewRecordRepository.create();
+              viewRecord.month = currentMonth;
+              viewRecord.ad = existingAd;
+              await this.viewRecordRepository.save(viewRecord);
+            } else {
+              viewRecord.view++;
+              await this.viewRecordRepository.save(viewRecord);
+            }
+          } else {
+            const ad = this.adRepository.create();
+            ad.campaign = existingCampaign;
+            ad.regist_ad_id = adItem;
+            const addCreated = await this.adRepository.save(ad);
+
+            //viewRecord
+            const viewRecord = this.viewRecordRepository.create();
+            viewRecord.month = currentMonth;
+            viewRecord.ad = addCreated;
+
+            await this.viewRecordRepository.save(viewRecord);
+          }
+        }
+        return 'update success';
       } else {
-        const ads = this.adsRepository.create();
-        ads.ads_id = adsId;
-        const adsAdd = await this.adsRepository.save(ads);
-        return adsAdd;
+        //campain
+
+        const campaign = this.campaignRepository.create();
+        campaign.web_owner_wallet_address = webpageOwnerWalletAddress;
+        campaign.chain_id = chainId;
+        const compainCreated = await this.campaignRepository.save(campaign);
+
+        //ad
+        for await (const adItem of ads) {
+          const existingAd = await this.getAdById(adItem, campaign.id);
+
+          if (existingAd) {
+            const viewRecord = await this.getViewRecordByAdId(
+              existingAd.id,
+              currentMonth,
+            );
+            viewRecord.view++;
+            await this.viewRecordRepository.save(viewRecord);
+          } else {
+            const ad = this.adRepository.create();
+            ad.campaign = compainCreated;
+            ad.regist_ad_id = adItem;
+            const addCreated = await this.adRepository.save(ad);
+
+            //viewRecord
+            const viewRecord = this.viewRecordRepository.create();
+            viewRecord.month = currentMonth;
+            viewRecord.ad = addCreated;
+
+            await this.viewRecordRepository.save(viewRecord);
+          }
+        }
+
+        return {
+          message: 'create success',
+        };
       }
     } catch (error) {
-      throw new BadRequestException(`add ads fail error:${error}`);
+      throw new BadRequestException(`add campaign fail error:${error}`);
     }
   }
 
-  async getAllAds() {
+  async getCampaignByWalletAddress(walletAddress: string) {
     try {
-      const ads = await this.adsRepository.find();
-      return ads;
-    } catch (error) {
-      throw new BadRequestException(`get all ads  error: ${error}`);
-    }
-  }
-
-  async getAdsById(id: string) {
-    try {
-      const ads = await this.adsRepository
-        .createQueryBuilder('ads')
-        .where('ads.ads_id = :id', { id })
+      const campaign = await this.campaignRepository
+        .createQueryBuilder('campaign')
+        .where('campaign.web_owner_wallet_address = :id', { id: walletAddress })
         .getOne();
-      return ads;
+      return campaign;
     } catch (error) {
       throw new BadRequestException(`get ads by id fail error: ${error}`);
+    }
+  }
+
+  // async getAllAds() {
+  //   try {
+  //     const ads = await this.adRepository.find();
+  //     return ads;
+  //   } catch (error) {
+  //     throw new BadRequestException(`get all ads  error: ${error}`);
+  //   }
+  // }
+
+  async getAdById(registAdId: string, campaignId: number) {
+    try {
+      const ad = await this.adRepository
+        .createQueryBuilder('ads')
+        .where('ads.regist_ad_id = :id', { id: registAdId })
+        .andWhere('ads.campaign_id = :campaignId', { campaignId })
+        .getOne();
+      return ad;
+    } catch (error) {
+      throw new BadRequestException(`get ads by id fail error: ${error}`);
+    }
+  }
+
+  async getViewRecordByAdId(adId: number, currentmonth: number) {
+    try {
+      const viewRecord = await this.viewRecordRepository
+        .createQueryBuilder('viewrecord')
+        .where('viewrecord.ad_id = :adId', { adId })
+        .andWhere('viewrecord.month  = :currentmonth', { currentmonth })
+        .getOne();
+      return viewRecord;
+    } catch (error) {
+      throw new BadRequestException(
+        `get viewRecord by id fail error: ${error}`,
+      );
     }
   }
 
@@ -79,19 +194,19 @@ export class AdsService {
   async sendViewToContract() {
     try {
       //get all adsView
-      const allAds = await this.getAllAds();
+      // const allAds = await this.getAllAds();
 
       //loop send view to contract
-      allAds.map(async (ads) => {
-        console.log('call contract');
-        const adsView = `${ads.view}`;
-        const tx = await (this.contractSigner as any).setGreeting(adsView);
-        await tx.wait();
-        console.log('greet =>', await (this.contractSigner as any).greet());
+      // allAds.map(async (ads) => {
+      console.log('call contract');
+      // const adsView = `${ads.view}`;
+      // const tx = await (this.contractSigner as any).setGreeting(adsView);
+      // await tx.wait();
+      console.log('greet =>', await (this.contractSigner as any).greet());
 
-        //reset view
-        await this.resetViewByAdsId(ads.ads_id);
-      });
+      //reset view
+      // await this.resetViewByAdsId(ads.ads_id);
+      // });
     } catch (error) {
       throw new BadRequestException(
         `process send view to contract fail error:${error}`,
@@ -101,9 +216,9 @@ export class AdsService {
 
   async resetViewByAdsId(adsId: string) {
     try {
-      const existingAds = await this.getAdsById(adsId);
-      existingAds.view = 0;
-      await this.adsRepository.save(existingAds);
+      // const existingAds = await this.getAdById(adsId);
+      // existingAds.view = 0;
+      // await this.adRepository.save(existingAds);
     } catch (error) {
       throw new BadRequestException(`can not reset view by id error: ${error}`);
     }
