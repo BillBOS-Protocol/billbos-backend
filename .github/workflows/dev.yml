@@ -1,0 +1,30 @@
+name: BILLBOS_BACKEND
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  Deploy:
+    runs-on: [self-hosted, main-runner]
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Create .env
+        # run: echo $'PORT=${{secrets.PORT}}\nDB_HOST=${{secrets.DB_HOST}}\nDB_PORT=${{secrets.DB_PORT}}\nDB_USERNAME=${{secrets.DB_USERNAME}}\nDB_PASSWORD=${{secrets.DB_PASSWORD}}\nDB_DATABASE=${{secrets.DB_DATABASE}}\nNEST_TYPEORM_SYNCHRONIZE=${{secrets.NEST_TYPEORM_SYNCHRONIZE}}\nCHAIN_MODE=${{secrets.CHAIN_MODE}}\nOPENAPI_ENABLED=${{secrets.OPENAPI_ENABLED}}\nALCHEMY_API_KEY=${{secrets.ALCHEMY_API_KEY}}\nTRANSCRYPT_URL=${{secrets.TRANSCRYPT_URL}}\nEXCHANGERATE_API=${{secrets.EXCHANGERATE_API}}\nEXCHANGERATE_KEY=${{secrets.EXCHANGERATE_KEY}}\nGM_USERNAME=${{secrets.GM_USERNAME}}\nGM_APP_PASSWORD=${{secrets.GM_APP_PASSWORD}}\nPRIVATE_KEY=${{secrets.PRIVATE_KEY}}\nDEALER_SERVER_URL=${{secrets.DEALER_SERVER_URL}}\nPHC_URL=${{secrets.PHC_URL}}\nPHC_GM_USERNAME=${{secrets.PHC_GM_USERNAME}}\nPHC_GM_APP_PASSWORD=${{secrets.PHC_GM_APP_PASSWORD}}\nSECRET_KEY=${{secrets.SECRET_KEY}}\nPHC_SENDGRID_KEY=${{secrets.PHC_SENDGRID_KEY}}\nAPI_KEY_SEND_GRID_TRANSCRYPT=${{secrets.API_KEY_SEND_GRID_TRANSCRYPT}}\nREDIS_HOST=${{secrets.REDIS_HOST_DEV}}\nREDIS_PASSWORD=${{secrets.REDIS_PASSWORD_DEV}}\nREDIS_PORT=${{secrets.REDIS_PORT_DEV}}\nDNS_KEY=${{secrets.DNS_KEY}}' > env/.env.production
+        run: |
+          cat << EOF > .env
+          PORT=${{secrets.PORT}}
+          PG_HOST=${{secrets.PG_HOST}}
+          PG_PORT=${{secrets.PG_PORT}}
+          PG_USER=${{secrets.PG_USER}}
+          PG_PASSWORD=${{secrets.PG_PASSWORD}}
+          PG_DATABASE=${{secrets.PG_DATABASE}}
+          EOF
+          echo "create .env file"
+
+      - name: Run Docker Compose
+        run: docker-compose up -d --build
+
+      - name: Clear Unused Containers
+        run: docker system prune -f
