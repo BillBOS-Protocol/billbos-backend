@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  billbos_backend:
+    container_name: billbos_backend
+    build: .
+    command: npm run start:prod
+    ports:
+      - 4000:4000
+    restart: unless-stopped
