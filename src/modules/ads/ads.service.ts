@@ -15,18 +15,38 @@ export class AdsService {
     private readonly adsRepository: Repository<Ads>,
   ) {}
 
-  async createAds(createAdsDto: CreateAdsDTO) {
-    const { walletAddress, adsId } = createAdsDto;
-
-    const ads = this.adsRepository.create();
-    ads.walletAddress = walletAddress;
-    ads.ads_id = adsId;
-
+  async upsertAds(createAdsDto: CreateAdsDTO) {
+    let { adsId } = createAdsDto;
+    adsId = adsId.toLowerCase();
+    if (adsId.length === 0) {
+      throw new BadRequestException(`AdsId can be empty string`);
+    }
     try {
-      const adsAdd = await this.adsRepository.save(ads);
-      return adsAdd;
+      const existingAds = await this.getAdsById(adsId);
+      if (existingAds) {
+        existingAds.view++;
+        await this.adsRepository.save(existingAds);
+        return existingAds;
+      } else {
+        const ads = this.adsRepository.create();
+        ads.ads_id = adsId;
+        const adsAdd = await this.adsRepository.save(ads);
+        return adsAdd;
+      }
     } catch (error) {
       throw new BadRequestException(`add ads fail error:${error}`);
+    }
+  }
+
+  async getAdsById(id: string) {
+    try {
+      const ads = await this.adsRepository
+        .createQueryBuilder('ads')
+        .where('ads.ads_id = :id', { id })
+        .getOne();
+      return ads;
+    } catch (error) {
+      throw new BadRequestException(`get ads by id fail error: ${error}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateAdsDTO } from './dto/createAds.dto';
 import { AdsService } from './ads.service';
 
@@ -7,7 +7,7 @@ export class AdsController {
   constructor(private readonly adsService: AdsService) {}
 
   @Post()
-  async createAds(@Body() createAdsDto: CreateAdsDTO) {
-    return this.adsService.createAds(createAdsDto);
+  async upsertAds(@Body() createAdsDto: CreateAdsDTO) {
+    return this.adsService.upsertAds(createAdsDto);
   }
 }

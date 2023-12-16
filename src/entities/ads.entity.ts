@@ -12,9 +12,6 @@ export class Ads {
   id: number;
 
   @Column()
-  walletAddress: string;
-
-  @Column()
   ads_id: string;
 
   @Column({ default: 0 })
