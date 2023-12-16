@@ -10,4 +10,11 @@ export class AdsController {
   async upsertAds(@Body() createAdsDto: CreateAdsDTO) {
     return this.adsService.upsertAds(createAdsDto);
   }
+
+  @Get('block')
+  async getBlock() {
+    console.log('cal');
+
+    return await this.adsService.callGreet();
+  }
 }
