@@ -8,9 +8,9 @@ services:
     ports:
       - 4000:4000
     restart: unless-stopped
-    # networks:
-    #   - billbos-network
-# networks:
-#   billbos-network:
-#     driver: bridge
-#     external: true
+    networks:
+      - billbos-network
+networks:
+  billbos-network:
+    driver: bridge
+    external: true
