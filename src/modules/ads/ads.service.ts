@@ -179,6 +179,23 @@ export class AdsService {
     }
   }
 
+  async getTotalAdView(month: number) {
+    let viewSum = 0;
+    try {
+      const views = await this.viewRecordRepository
+        .createQueryBuilder('view')
+        .where('view.month = :month', { month })
+        .getMany();
+
+      for await (const view of views) {
+        viewSum += view.view;
+      }
+      return viewSum;
+    } catch (error) {
+      throw new BadRequestException(`getTotalAdView fail`);
+    }
+  }
+
   // FIXME: check IP
   // async upsertAds(createAdsDto: CreateAdsDTO) {
   //   //For prod

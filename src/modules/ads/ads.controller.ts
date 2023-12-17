@@ -17,6 +17,12 @@ export class AdsController {
     return await this.adsService.getAdsViewByAdId(adId, +month);
   }
 
+  @Get('total-ad-view')
+  async getTotalAdView(@Query() query) {
+    const { month, a } = query;
+    return await this.adsService.getTotalAdView(+month);
+  }
+
   //core
   // @Post()
   // async upsertAds(@Body() createAdsDto: CreateAdsDTO) {
