@@ -20,4 +20,12 @@ export class AdsController {
   async getTotalEarnByMonth(@Param('month') month) {
     return this.adsService.getTotalEarnByMonth(month);
   }
+
+  @Get('total-ad-view')
+  async getTotalAdViewByMonth() {
+    return await this.adsService.getTotalAdViewByMonth(
+      3,
+      '0x31f8374f30c209a687fe715c911dd4acf1e04d2a',
+    );
+  }
 }

@@ -257,4 +257,35 @@ export class AdsService {
       return monthEarn;
     } catch (error) {}
   }
+
+  async getTotalAdViewByMonth(
+    month: number,
+    webpageOwnerWalletAddress: string,
+  ) {
+    let viewsum = 0;
+    const campaign = await this.getCampaignByWalletAddress(
+      webpageOwnerWalletAddress,
+    );
+
+    const ads = await this.adRepository
+      .createQueryBuilder('ad')
+      .where('ad.campaign_id = :campaign_id', { campaign_id: campaign.id })
+      .getMany();
+
+    for await (const ad of ads) {
+      const view = await this.viewRecordRepository
+        .createQueryBuilder('view')
+        .where('view.ad_id = :ad_id', { ad_id: ad.id })
+        .where('view.month = :month', { month })
+        .getOne();
+
+      if (!view) {
+        viewsum += 0;
+      } else {
+        viewsum += view.view;
+      }
+    }
+
+    return viewsum;
+  }
 }
