@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ViewAdsDTO } from './dto/createAds.dto';
 import { AdsService } from './ads.service';
 
@@ -9,6 +9,12 @@ export class AdsController {
   @Post()
   async upsertView(@Body() viewAdsDTO: ViewAdsDTO) {
     return await this.adsService.upsertView(viewAdsDTO);
+  }
+
+  @Get('ad-view-by-adId')
+  async getAdsViewByAdId(@Query() query) {
+    const { adId, month } = query;
+    return await this.adsService.getAdsViewByAdId(adId, +month);
   }
 
   //core

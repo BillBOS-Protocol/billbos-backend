@@ -162,6 +162,23 @@ export class AdsService {
     }
   }
 
+  async getAdsViewByAdId(adId: string, month: number) {
+    try {
+      const ad = await this.adRepository.findOne({
+        where: { ad_id: adId },
+      });
+
+      const view = await this.viewRecordRepository
+        .createQueryBuilder('view')
+        .where('view.ad_id = :adId', { adId: ad.id })
+        .andWhere('view.month = :month', { month })
+        .getOne();
+      return view.view;
+    } catch (error) {
+      throw new BadRequestException(`cant get ad view by adId: ${adId}`);
+    }
+  }
+
   // FIXME: check IP
   // async upsertAds(createAdsDto: CreateAdsDTO) {
   //   //For prod
