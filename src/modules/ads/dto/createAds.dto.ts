@@ -4,6 +4,9 @@ export class ViewAdsDTO {
   @IsString()
   webpageOwnerWalletAddress: string;
 
+  @IsNumber()
+  month: number;
+
   @IsArray()
   ads: adObject[];
 }

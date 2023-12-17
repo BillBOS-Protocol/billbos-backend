@@ -10,7 +10,6 @@ import { contractAddress } from 'constants/contract-list';
 
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
-import { Earn } from 'src/entities/earn.entity';
 import { log } from 'console';
 import { create } from 'domain';
 import { WebpageOwner } from 'src/entities/webpageOwner.entity';
@@ -40,16 +39,13 @@ export class AdsService {
 
     @InjectRepository(ViewRecord)
     private readonly viewRecordRepository: Repository<ViewRecord>,
-
-    @InjectRepository(Earn)
-    private readonly earnRepository: Repository<Earn>,
   ) {}
 
   async upsertView(viewAdsDTO: ViewAdsDTO) {
     //for prod get mounthLasted from contract
 
     //for test
-    const currentMonth = 4;
+    const currentMonth = viewAdsDTO.month;
     const webpageOwnerWalletAddress = viewAdsDTO.webpageOwnerWalletAddress;
     const ads = viewAdsDTO.ads;
     // const chainId = viewAdsDTO.chainId;
@@ -173,7 +169,10 @@ export class AdsService {
         .where('view.ad_id = :adId', { adId: ad.id })
         .andWhere('view.month = :month', { month })
         .getOne();
-      return view.view;
+      return {
+        month,
+        view: view.view,
+      };
     } catch (error) {
       throw new BadRequestException(`cant get ad view by adId: ${adId}`);
     }
@@ -190,10 +189,71 @@ export class AdsService {
       for await (const view of views) {
         viewSum += view.view;
       }
-      return viewSum;
+      return {
+        month,
+        view: viewSum,
+      };
     } catch (error) {
       throw new BadRequestException(`getTotalAdView fail`);
     }
+  }
+
+  async getTotalWebpageOwnerView(month: number, walletAddress: string) {
+    try {
+      const webpageOwner = await this.webpageOwnerRepository.findOne({
+        where: { wallet_address: walletAddress },
+      });
+
+      const webpageOwnerView = await this.webpageOwnerViewRepository
+        .createQueryBuilder('webpageOwnerView')
+        .where('webpageOwnerView.webpageOwner_id = :webpageOwner_id', {
+          webpageOwner_id: webpageOwner.id,
+        })
+        .andWhere('webpageOwnerView.month = :month', { month })
+        .getOne();
+
+      return {
+        webpageOwnerWalletAdderss: walletAddress,
+        month,
+        view: webpageOwnerView.view,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        `fai to getTotalWebpageOwnerView, error:${error}`,
+      );
+    }
+  }
+
+  async getRatioWebpageOwnerviewByAllwebpageOwner(
+    month: number,
+    walletAddress: string,
+  ) {
+    const webpageOwnerView = await this.getTotalWebpageOwnerView(
+      month,
+      walletAddress,
+    );
+    console.log(
+      '🚀 ~ file: ads.service.ts:239 ~ AdsService ~ webpageOwnerView:',
+      webpageOwnerView,
+    );
+
+    const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
+      where: { month },
+    });
+    console.log(
+      '🚀 ~ file: ads.service.ts:243 ~ AdsService ~ allwebpageOwnerViews:',
+      allwebpageOwnerViews,
+    );
+    let totalWebpageOwnerViewSumSum = 0;
+    for await (const allwebpageOwnerView of allwebpageOwnerViews) {
+      totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
+    }
+
+    const ration = webpageOwnerView.view / totalWebpageOwnerViewSumSum;
+    return {
+      ration,
+      month,
+    };
   }
 
   // FIXME: check IP

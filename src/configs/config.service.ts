@@ -2,7 +2,6 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { Ad } from 'src/entities/ad.entity';
 import { WebpageOwner } from 'src/entities/webpageOwner.entity';
-import { Earn } from 'src/entities/earn.entity';
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import { WebpageOwnerView } from 'src/entities/pageOwnerView.entity';
 
@@ -44,7 +43,7 @@ class ConfigService {
       password: this.getValue('PG_PASSWORD'),
       database: this.getValue('PG_DATABASE'),
       // entities: ['**/*.entity{.ts,.js}'],
-      entities: [Ad, WebpageOwner, WebpageOwnerView, ViewRecord, Earn],
+      entities: [Ad, WebpageOwner, WebpageOwnerView, ViewRecord],
       synchronize: true,
 
       // migrationsTableName: 'migration',

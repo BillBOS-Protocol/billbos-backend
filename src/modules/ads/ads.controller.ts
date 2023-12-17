@@ -23,6 +23,25 @@ export class AdsController {
     return await this.adsService.getTotalAdView(+month);
   }
 
+  @Get('total-webpageowner-view-by-owner-address')
+  async getTotalWebpageOwnerView(@Query() query) {
+    const { month, walletAddress } = query;
+
+    return await this.adsService.getTotalWebpageOwnerView(
+      +month,
+      walletAddress,
+    );
+  }
+
+  @Get('ratio-webpageOwnerview-by-allwebpageOwner')
+  async getRatioWebpageOwnerviewByAllwebpageOwner(@Query() query) {
+    const { month, walletAddress } = query;
+    return await this.adsService.getRatioWebpageOwnerviewByAllwebpageOwner(
+      +month,
+      walletAddress,
+    );
+  }
+
   //core
   // @Post()
   // async upsertAds(@Body() createAdsDto: CreateAdsDTO) {

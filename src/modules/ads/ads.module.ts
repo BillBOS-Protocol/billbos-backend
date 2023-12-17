@@ -5,19 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ad } from 'src/entities/ad.entity';
 
 import { ViewRecord } from 'src/entities/viewRecord.entity';
-import { Earn } from 'src/entities/earn.entity';
 import { WebpageOwner } from 'src/entities/webpageOwner.entity';
 import { WebpageOwnerView } from 'src/entities/pageOwnerView.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Ad,
-      WebpageOwner,
-      WebpageOwnerView,
-      ViewRecord,
-      Earn,
-    ]),
+    TypeOrmModule.forFeature([Ad, WebpageOwner, WebpageOwnerView, ViewRecord]),
   ],
   controllers: [AdsController],
   providers: [AdsService],
