@@ -5,7 +5,7 @@ services:
     container_name: billbos_backend
     build: .
     # command: npm run start:prod
-    command: npm run start:dev
+    command: npm run start:prod
     ports:
       - 4000:4000
     restart: unless-stopped
