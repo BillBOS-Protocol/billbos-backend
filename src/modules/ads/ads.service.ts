@@ -194,7 +194,7 @@ export class AdsService {
         view: viewSum,
       };
     } catch (error) {
-      throw new BadRequestException(`getTotalAdView fail`);
+      throw new BadRequestException(`getTotalAdView fail, error: ${error}`);
     }
   }
 
