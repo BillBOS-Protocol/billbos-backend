@@ -6,14 +6,21 @@ import { AdsService } from './ads.service';
 export class AdsController {
   constructor(private readonly adsService: AdsService) {}
 
+  //core
   @Post()
   async upsertAds(@Body() createAdsDto: CreateAdsDTO) {
     return this.adsService.upsertAds(createAdsDto);
   }
 
-  @Post('/sendview')
+  //manual sendview to contract
+  @Post('sendview')
   async sendViewToContract() {
     return this.adsService.sendViewToContract();
+  }
+
+  @Post('add-total-earn-by-month')
+  async addTotalEarnByMonth() {
+    return await this.adsService.addTotalEarnByMonth(3);
   }
 
   @Get('total-earn/:month')
@@ -23,9 +30,22 @@ export class AdsController {
 
   @Get('total-ad-view')
   async getTotalAdViewByMonth() {
-    return await this.adsService.getTotalAdViewByMonth(
+    return await this.adsService.getTotalAdViewByMonth(3);
+  }
+
+  @Get('my-total-ad-view')
+  async getMyTotalAdViewByMonth() {
+    return await this.adsService.getMyTotalAdViewByMonth(
       3,
-      '0x31f8374f30c209a687fe715c911dd4acf1e04d2a',
+      '0x443fe6af640c1e6dec1efc4468451e6765152e94',
+    );
+  }
+
+  @Get('get-my-total-earn-by-view')
+  async getEarnByView() {
+    return await this.adsService.getMyTotalEarnByView(
+      3,
+      '0x443fe6af640c1e6dec1efc4468451e6765152e94',
     );
   }
 }

@@ -11,6 +11,7 @@ import { Campaign } from 'src/entities/campaign.entity';
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
 import { Earn } from 'src/entities/earn.entity';
+import { log } from 'console';
 
 @Injectable()
 export class AdsService {
@@ -228,7 +229,7 @@ export class AdsService {
   //   }
   // }
 
-  async addTotalEarnByMonth(month: string) {
+  async addTotalEarnByMonth(month: number) {
     //call contract to get total earning by month pass month
     //...
     //mock
@@ -246,19 +247,41 @@ export class AdsService {
     }
   }
 
-  async getTotalEarnByMonth(month: string) {
+  async getTotalEarnByMonth(month: number) {
     try {
       const monthEarn = await this.earnRepository.findOne({
         where: { month },
       });
       if (!monthEarn) {
-        return {};
+        return 0;
       }
-      return monthEarn;
-    } catch (error) {}
+      return monthEarn.value;
+    } catch (error) {
+      throw new BadRequestException(
+        `get total earn by month:${month} fail, error: ${error}`,
+      );
+    }
   }
 
-  async getTotalAdViewByMonth(
+  async getTotalAdViewByMonth(month: number) {
+    let viewsum = 0;
+    try {
+      const views = await this.viewRecordRepository
+        .createQueryBuilder('view')
+        .where('view.month = :month', { month })
+        .getMany();
+      for await (const view of views) {
+        viewsum += view.view;
+      }
+      return viewsum;
+    } catch (error) {
+      throw new BadRequestException(
+        `get all total view in month:${month} fail, error: ${error}`,
+      );
+    }
+  }
+
+  async getMyTotalAdViewByMonth(
     month: number,
     webpageOwnerWalletAddress: string,
   ) {
@@ -276,9 +299,8 @@ export class AdsService {
       const view = await this.viewRecordRepository
         .createQueryBuilder('view')
         .where('view.ad_id = :ad_id', { ad_id: ad.id })
-        .where('view.month = :month', { month })
+        .andWhere('view.month = :month', { month })
         .getOne();
-
       if (!view) {
         viewsum += 0;
       } else {
@@ -287,5 +309,30 @@ export class AdsService {
     }
 
     return viewsum;
+  }
+
+  async getMyTotalEarnByView(month: number, webpageOwnerWalletAddress: string) {
+    const totalAdsView = await this.getTotalAdViewByMonth(month);
+    const mytotalAdsView = await this.getMyTotalAdViewByMonth(
+      month,
+      webpageOwnerWalletAddress,
+    );
+    const totalEarn = await this.getTotalEarnByMonth(month);
+
+    console.log('totalAdsView', totalAdsView);
+    console.log('totalEarn', totalEarn);
+    console.log('mytotalAdsView', mytotalAdsView);
+
+    //formula
+    // totalAdsView = totalEarn
+    // mytotalAdsview
+
+    // 9 = 10000
+    // 6 = 10000 * 9 /
+
+    const yourEarnFromView: number =
+      (+totalEarn * mytotalAdsView) / totalAdsView;
+
+    return yourEarnFromView;
   }
 }

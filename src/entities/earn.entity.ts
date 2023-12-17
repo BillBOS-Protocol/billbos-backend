@@ -12,7 +12,7 @@ export class Earn {
   id: number;
 
   @Column()
-  month: string;
+  month: number;
 
   @Column()
   value: string;
