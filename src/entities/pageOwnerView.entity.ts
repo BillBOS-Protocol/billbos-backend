@@ -4,23 +4,28 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { Ad } from './ad.entity';
+import { WebpageOwner } from './webpageOwner.entity';
 
 @Entity()
-export class Campaign {
+export class WebpageOwnerView {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  web_owner_wallet_address: string;
+  month: number;
 
-  @OneToMany(() => Ad, (ad) => ad.campaign)
-  ads: Ad[];
+  @Column({ default: 1 })
+  view: number;
 
-  @Column()
-  chain_id: string;
+  @ManyToOne(
+    () => WebpageOwner,
+    (webpageOwner) => webpageOwner.webpageOwnerView,
+  )
+  @JoinColumn({ name: 'webpageOwner_id' })
+  webpageOwner: WebpageOwner;
 
   @CreateDateColumn({
     type: 'timestamp',
