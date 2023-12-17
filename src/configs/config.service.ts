@@ -2,6 +2,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { Ad } from 'src/entities/ad.entity';
 import { Campaign } from 'src/entities/campaign.entity';
+import { Earn } from 'src/entities/earn.entity';
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 
 // require('dotenv').config();
@@ -42,7 +43,7 @@ class ConfigService {
       password: this.getValue('PG_PASSWORD'),
       database: this.getValue('PG_DATABASE'),
       // entities: ['**/*.entity{.ts,.js}'],
-      entities: [Ad, Campaign, ViewRecord],
+      entities: [Ad, Campaign, ViewRecord, Earn],
       synchronize: true,
 
       // migrationsTableName: 'migration',

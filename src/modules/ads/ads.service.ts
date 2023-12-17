@@ -10,6 +10,7 @@ import { contractAddress } from 'constants/contract-list';
 import { Campaign } from 'src/entities/campaign.entity';
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
+import { Earn } from 'src/entities/earn.entity';
 
 @Injectable()
 export class AdsService {
@@ -32,6 +33,9 @@ export class AdsService {
 
     @InjectRepository(ViewRecord)
     private readonly viewRecordRepository: Repository<ViewRecord>,
+
+    @InjectRepository(Earn)
+    private readonly earnRepository: Repository<Earn>,
   ) {}
 
   // FIXME: check IP
@@ -214,13 +218,43 @@ export class AdsService {
     }
   }
 
-  async resetViewByAdsId(adsId: string) {
+  // async resetViewByAdsId(adsId: string) {
+  //   try {
+  //     // const existingAds = await this.getAdById(adsId);
+  //     // existingAds.view = 0;
+  //     // await this.adRepository.save(existingAds);
+  //   } catch (error) {
+  //     throw new BadRequestException(`can not reset view by id error: ${error}`);
+  //   }
+  // }
+
+  async addTotalEarnByMonth(month: string) {
+    //call contract to get total earning by month pass month
+    //...
+    //mock
+    const totalMonthEarn = '10000';
     try {
-      // const existingAds = await this.getAdById(adsId);
-      // existingAds.view = 0;
-      // await this.adRepository.save(existingAds);
+      const earn = await this.earnRepository.create();
+      earn.month = month;
+      earn.value = totalMonthEarn;
+      await this.earnRepository.save(earn);
+      return earn;
     } catch (error) {
-      throw new BadRequestException(`can not reset view by id error: ${error}`);
+      throw new BadRequestException(
+        ` add total earn month: ${month} fail, error ${error}`,
+      );
     }
+  }
+
+  async getTotalEarnByMonth(month: string) {
+    try {
+      const monthEarn = await this.earnRepository.findOne({
+        where: { month },
+      });
+      if (!monthEarn) {
+        return {};
+      }
+      return monthEarn;
+    } catch (error) {}
   }
 }
