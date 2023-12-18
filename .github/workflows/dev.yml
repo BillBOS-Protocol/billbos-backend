@@ -2,7 +2,7 @@ name: BILLBOS_BACKEND
 
 on:
   push:
-    branches: [feautre/rewrite]
+    branches: [main]
 
 jobs:
   Deploy:
