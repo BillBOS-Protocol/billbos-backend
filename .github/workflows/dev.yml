@@ -21,6 +21,7 @@ jobs:
           PG_PASSWORD=${{secrets.PG_PASSWORD}}
           PG_DATABASE=${{secrets.PG_DATABASE}}
           PRIVATE_KEY=${{secrets.PRIVATE_KEY}}
+          SECAPI_KEY=${{secrets.SECAPI_KEY}}
           EOF
           echo "create .env file"
 

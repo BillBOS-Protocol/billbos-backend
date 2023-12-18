@@ -14,7 +14,7 @@ export class BondService {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
-        'Ocp-Apim-Subscription-Key': '52b485c3242d4af0920be6599906eb6f',
+        'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
       },
     });
     const bondResArr = await res.json();
@@ -36,7 +36,7 @@ export class BondService {
           // Request headers
           headers: {
             'Cache-Control': 'no-cache',
-            'Ocp-Apim-Subscription-Key': '52b485c3242d4af0920be6599906eb6f',
+            'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
           },
         },
       );
