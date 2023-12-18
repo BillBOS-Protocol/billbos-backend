@@ -779,8 +779,6 @@ export class AdsService {
             view.ad = existAd;
             await this.viewRecordRepository.save(view);
           } else {
-            console.log('have view');
-
             view.view++;
             await this.viewRecordRepository.save(view);
           }
@@ -947,10 +945,14 @@ export class AdsService {
         })
         .andWhere('webpageOwnerView.month = :month', { month })
         .getOne();
-
-      const view = weppageOwnerView.view;
-      webPageOwnerView.push(view);
+      if (!weppageOwnerView) {
+        webPageOwnerView.push(0);
+      } else {
+        const view = weppageOwnerView.view;
+        webPageOwnerView.push(view);
+      }
     }
+
     const webpageOwnerArr = webpageOwners.map((item) => {
       return item.wallet_address;
     });
@@ -961,14 +963,6 @@ export class AdsService {
     for await (const allwebpageOwnerView of allwebpageOwnerViews) {
       totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
     }
-
-    // provider = getProvider();
-    // signer = getSigner();
-    // contract_bkc = contractAddress[0].contractAddress;
-    // contract_jfin = contractAddress[1].contractAddress;
-    // provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
-    // signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
-    // contractAddress = '0x64ADc655a088ea04a9B1929e9930c4e9E49D962e';
 
     //BKC
     //setup
@@ -992,22 +986,22 @@ export class AdsService {
 
     try {
       //JFIN J2O Taro
-      // const provider = new JsonRpcProvider('');
-      // const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-      // const contractAddress = '';
-      // const billbosJ2OContract = new ethers.Contract(
-      //   contractAddress,
-      //   abi,
-      //   provider,
-      // );
-      // const contractBillBosJ2OSigner = billbosJ2OContract.connect(signer);
-      // const contractSigner = contractBillBosJ2OSigner.connect(signer);
-      // const tx = await (contractSigner as any).uploadAdsReport(
-      //   webpageOwnerArr,
-      //   webPageOwnerView,
-      //   totalWebpageOwnerViewSumSum,
-      // );
-      // await tx.wait();
+      const provider = new JsonRpcProvider('https://rpc.j2o.io/');
+      const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+      const contractAddress = '0x9d8b5e3C762167a409Db7f11a38b17dE9192E136';
+      const billbosJ2OContract = new ethers.Contract(
+        contractAddress,
+        abi,
+        provider,
+      );
+      const contractBillBosJ2OSigner = billbosJ2OContract.connect(signer);
+      const contractSigner = contractBillBosJ2OSigner.connect(signer);
+      const tx = await (contractSigner as any).uploadAdsReport(
+        webpageOwnerArr,
+        webPageOwnerView,
+        totalWebpageOwnerViewSumSum,
+      );
+      await tx.wait();
       console.log('done J20');
       return {
         message: "send webpage owner's view to contract success",

@@ -96,7 +96,6 @@ let AdsService = class AdsService {
                                 await this.viewRecordRepository.save(view);
                             }
                             else {
-                                console.log('have view');
                                 view.view++;
                                 await this.viewRecordRepository.save(view);
                             }
@@ -298,8 +297,13 @@ let AdsService = class AdsService {
                     })
                         .andWhere('webpageOwnerView.month = :month', { month })
                         .getOne();
-                    const view = weppageOwnerView.view;
-                    webPageOwnerView.push(view);
+                    if (!weppageOwnerView) {
+                        webPageOwnerView.push(0);
+                    }
+                    else {
+                        const view = weppageOwnerView.view;
+                        webPageOwnerView.push(view);
+                    }
                 }
                 finally {
                     _g = true;
@@ -350,6 +354,14 @@ let AdsService = class AdsService {
         await tx.wait();
         console.log('done bkc');
         try {
+            const provider = new ethers_1.JsonRpcProvider('https://rpc.j2o.io/');
+            const signer = new ethers_1.ethers.Wallet(process.env.PRIVATE_KEY, provider);
+            const contractAddress = '0x9d8b5e3C762167a409Db7f11a38b17dE9192E136';
+            const billbosJ2OContract = new ethers_1.ethers.Contract(contractAddress, abi_1.abi, provider);
+            const contractBillBosJ2OSigner = billbosJ2OContract.connect(signer);
+            const contractSigner = contractBillBosJ2OSigner.connect(signer);
+            const tx = await contractSigner.uploadAdsReport(webpageOwnerArr, webPageOwnerView, totalWebpageOwnerViewSumSum);
+            await tx.wait();
             console.log('done J20');
             return {
                 message: "send webpage owner's view to contract success",
