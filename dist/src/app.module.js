@@ -14,6 +14,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const config_service_1 = require("./configs/config.service");
 const ads_module_1 = require("./modules/ads/ads.module");
 const schedule_1 = require("@nestjs/schedule");
+const bond_module_1 = require("./modules/bond/bond.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -22,6 +23,7 @@ AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRoot(config_service_1.configService.getTypeOrmConfig()),
             ads_module_1.AdsModule,
             schedule_1.ScheduleModule.forRoot(),
+            bond_module_1.BondModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

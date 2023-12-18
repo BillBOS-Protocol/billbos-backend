@@ -1,0 +1,35 @@
+js I wan to map array this 
+
+[
+  {
+    coupon_code: '014',
+    coupon_rate: 'ปีที่ 1-10 อัตราคงที่ ปีที่ 11 ขึ้นไป อัตราลอยตัว (อัตราดอกเบี้ยดังกล่าวจะกำหนดก่อนขาย)',
+    last_upd_date: null
+  },
+  {
+    coupon_code: '002',
+    coupon_rate: '1) ถึงวันที่ใช้สิทธิ 2.55% 2) หากไม่มีการไถ่ถอนในวันแรกสามารถใช้สิทธิไถ่ถอน 3.55% (1 หรือ 2 ต้องบวก fix rate 6 months เฉลี่ยของธนาคารอ้างอิง 5 ธ.ใหญ่)',
+    last_upd_date: null
+  }]
+
+and this 
+[
+  {
+    issued_ref_id: 'DEI253500560',
+    unique_id: 'C0000000013',
+    name_th: 'US$220,000,000  7.378 percent. Perpetual Non-Cumulative Tier 1 Securities'
+  },
+  {
+    issued_ref_id: 'DEI253500635',
+    unique_id: 'C0000000013',
+    name_th: 'หุ้นกู้ด้อยสิทธิที่มีลักษณะคล้ายทุน ที่ไม่สะสมดอกเบี้ยจ่าย และไม่ชำระดอกเบี้ยในปีที่ไม่มีผลกำไร บมจ. ธนาคารกรุงไทย  ครั้งที่ 1/2549'
+  }
+]
+
+to [
+  {
+    coupon_rate,
+    name_th,
+  }
+] at same index
+
