@@ -965,7 +965,7 @@ export class AdsService {
     //setup
     const provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-    const contractAddress = '0x138b32685a9EEf7c14c1587eE441F28Dd5dE2A68';
+    const contractAddress = '0x8995e9741A2b9c7f1Bb982d08c360F2951a23c24';
     const billbosBKCContract = new ethers.Contract(
       contractAddress,
       abi,
