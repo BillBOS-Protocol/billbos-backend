@@ -6,21 +6,22 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Ad } from './ad.entity';
+
+import { WebpageOwnerView } from './pageOwnerView.entity';
 
 @Entity()
-export class Campaign {
+export class WebpageOwner {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  web_owner_wallet_address: string;
+  wallet_address: string;
 
-  @OneToMany(() => Ad, (ad) => ad.campaign)
-  ads: Ad[];
-
-  @Column()
-  chain_id: string;
+  @OneToMany(
+    () => WebpageOwnerView,
+    (webpageOwnerView) => webpageOwnerView.webpageOwner,
+  )
+  webpageOwnerView: WebpageOwnerView[];
 
   @CreateDateColumn({
     type: 'timestamp',

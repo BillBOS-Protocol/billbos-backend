@@ -1,338 +1,1012 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateAdsDTO } from './dto/createAds.dto';
+import { ViewAdsDTO } from './dto/createAds.dto';
 import { Repository } from 'typeorm';
 import { Ad } from 'src/entities/ad.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ethers } from 'ethers';
+import { JsonRpcProvider, ethers } from 'ethers';
 import { getProvider, getSigner } from 'utils/wallet.util';
 import { Cron } from '@nestjs/schedule';
-import { contractAddress } from 'constants/contract-list';
-import { Campaign } from 'src/entities/campaign.entity';
+import { contractBillBOSAddress } from 'constants/contract-list';
+
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
-import { Earn } from 'src/entities/earn.entity';
 import { log } from 'console';
+import { create } from 'domain';
+import { WebpageOwner } from 'src/entities/webpageOwner.entity';
+import { WebpageOwnerView } from 'src/entities/pageOwnerView.entity';
+import { abi } from 'constants/abi';
 
 @Injectable()
 export class AdsService {
-  provider = getProvider();
-  signer = getSigner();
-  contract = contractAddress[0].contractAddress;
-  abi = [
-    'function setGreeting(string memory _greeting) public',
-    'function greet() public view returns (string memory)',
-  ];
-  greetContract = new ethers.Contract(this.contract, this.abi, this.provider);
-  contractSigner = this.greetContract.connect(this.signer);
+  // provider = getProvider();
+  // signer = getSigner();
+  // contract_bkc = contractAddress[0].contractAddress;
+  // contract_jfin = contractAddress[1].contractAddress;
+  // provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
+  // signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
+  // contractAddress = '0x64ADc655a088ea04a9B1929e9930c4e9E49D962e';
+
+  // abi = [
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '_billbosAdaptorAddress',
+  //         type: 'address',
+  //       },
+  //       {
+  //         internalType: 'address',
+  //         name: '_stakedTokenAddress',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     stateMutability: 'nonpayable',
+  //     type: 'constructor',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: 'owner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'OwnableInvalidOwner',
+  //     type: 'error',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: 'account',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'OwnableUnauthorizedAccount',
+  //     type: 'error',
+  //   },
+  //   {
+  //     anonymous: false,
+  //     inputs: [
+  //       {
+  //         indexed: true,
+  //         internalType: 'address',
+  //         name: 'previousOwner',
+  //         type: 'address',
+  //       },
+  //       {
+  //         indexed: true,
+  //         internalType: 'address',
+  //         name: 'newOwner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'OwnershipTransferred',
+  //     type: 'event',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '_webpageOwner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: '_claimReward',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'adsContent',
+  //     outputs: [
+  //       {
+  //         internalType: 'string',
+  //         name: 'name',
+  //         type: 'string',
+  //       },
+  //       {
+  //         internalType: 'string',
+  //         name: 'imageCID',
+  //         type: 'string',
+  //       },
+  //       {
+  //         internalType: 'string',
+  //         name: 'newTabLink',
+  //         type: 'string',
+  //       },
+  //       {
+  //         internalType: 'string',
+  //         name: 'widgetLink',
+  //         type: 'string',
+  //       },
+  //       {
+  //         internalType: 'bool',
+  //         name: 'isInteractive',
+  //         type: 'bool',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '',
+  //         type: 'address',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'adsId',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'adsIdLast',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'adsStakedBalance',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'billbosAdaptorAddress',
+  //     outputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_adsId',
+  //         type: 'uint256',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_amount',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'boost',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'claimReward',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         components: [
+  //           {
+  //             internalType: 'string',
+  //             name: 'name',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'imageCID',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'newTabLink',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'widgetLink',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'bool',
+  //             name: 'isInteractive',
+  //             type: 'bool',
+  //           },
+  //         ],
+  //         internalType: 'struct IBillBOSCore.AdsContent',
+  //         name: '_ads',
+  //         type: 'tuple',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_amount',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'createAds',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_adsIdLast',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'getAds',
+  //     outputs: [
+  //       {
+  //         components: [
+  //           {
+  //             internalType: 'uint256',
+  //             name: 'adsId',
+  //             type: 'uint256',
+  //           },
+  //           {
+  //             components: [
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'name',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'imageCID',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'newTabLink',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'widgetLink',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'bool',
+  //                 name: 'isInteractive',
+  //                 type: 'bool',
+  //               },
+  //             ],
+  //             internalType: 'struct IBillBOSCore.AdsContent',
+  //             name: 'adsContent',
+  //             type: 'tuple',
+  //           },
+  //           {
+  //             internalType: 'uint256',
+  //             name: 'adsStakedBalance',
+  //             type: 'uint256',
+  //           },
+  //         ],
+  //         internalType: 'struct IBillBOSCore.AdsRes[]',
+  //         name: '',
+  //         type: 'tuple[]',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '_adsOwner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'getAdsUser',
+  //     outputs: [
+  //       {
+  //         components: [
+  //           {
+  //             internalType: 'uint256',
+  //             name: 'adsId',
+  //             type: 'uint256',
+  //           },
+  //           {
+  //             components: [
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'name',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'imageCID',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'newTabLink',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'string',
+  //                 name: 'widgetLink',
+  //                 type: 'string',
+  //               },
+  //               {
+  //                 internalType: 'bool',
+  //                 name: 'isInteractive',
+  //                 type: 'bool',
+  //               },
+  //             ],
+  //             internalType: 'struct IBillBOSCore.AdsContent',
+  //             name: 'adsContent',
+  //             type: 'tuple',
+  //           },
+  //           {
+  //             internalType: 'uint256',
+  //             name: 'adsStakedBalance',
+  //             type: 'uint256',
+  //           },
+  //         ],
+  //         internalType: 'struct IBillBOSCore.AdsRes[]',
+  //         name: '',
+  //         type: 'tuple[]',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '_webpageOwner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'getReward',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'monthClaimedReward',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'monthCount',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'owner',
+  //     outputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'platformBalance',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'renounceOwnership',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '_billbosAdaptorAddress',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'setBillbosAdaptorAddress',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'stakedTokenAddress',
+  //     outputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: '',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'totalEarningBalanceLast',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'totalStakedBalanceLast',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address',
+  //         name: 'newOwner',
+  //         type: 'address',
+  //       },
+  //     ],
+  //     name: 'transferOwnership',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_adsId',
+  //         type: 'uint256',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_amount',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'unboost',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_adsId',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'unboostAll',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_adsId',
+  //         type: 'uint256',
+  //       },
+  //       {
+  //         components: [
+  //           {
+  //             internalType: 'string',
+  //             name: 'name',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'imageCID',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'newTabLink',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'string',
+  //             name: 'widgetLink',
+  //             type: 'string',
+  //           },
+  //           {
+  //             internalType: 'bool',
+  //             name: 'isInteractive',
+  //             type: 'bool',
+  //           },
+  //         ],
+  //         internalType: 'struct IBillBOSCore.AdsContent',
+  //         name: '_ads',
+  //         type: 'tuple',
+  //       },
+  //     ],
+  //     name: 'updateAds',
+  //     outputs: [],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [
+  //       {
+  //         internalType: 'address[]',
+  //         name: '_webpageOwner',
+  //         type: 'address[]',
+  //       },
+  //       {
+  //         internalType: 'uint256[]',
+  //         name: '_viewCount',
+  //         type: 'uint256[]',
+  //       },
+  //       {
+  //         internalType: 'uint256',
+  //         name: '_totalViewCount',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     name: 'uploadAdsReport',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'nonpayable',
+  //     type: 'function',
+  //   },
+  //   {
+  //     inputs: [],
+  //     name: 'webpageOwnerIdLast',
+  //     outputs: [
+  //       {
+  //         internalType: 'uint256',
+  //         name: '',
+  //         type: 'uint256',
+  //       },
+  //     ],
+  //     stateMutability: 'view',
+  //     type: 'function',
+  //   },
+  // ];
+
+  // //bkc
+  // billbosBKCContract = new ethers.Contract(
+  //   // this.contract_bkc,
+  //   this.contractAddress,
+  //   this.abi,
+  //   this.provider,
+  // );
+  // contractBillBosBKCSigner = this.billbosBKCContract.connect(this.signer);
+  // contractSigner = this.billbosBKCContract.connect(this.signer);
+
+  // //jfin
+  // billbosJFINContract = new ethers.Contract(
+  //   this.contract_jfin,
+  //   this.abi,
+  //   this.signer,
+  // );
+  // contractBillBosJFINSigner = this.billbosJFINContract.connect(this.signer);
 
   constructor(
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
 
-    @InjectRepository(Campaign)
-    private readonly campaignRepository: Repository<Campaign>,
+    @InjectRepository(WebpageOwner)
+    private readonly webpageOwnerRepository: Repository<WebpageOwner>,
+
+    @InjectRepository(WebpageOwnerView)
+    private readonly webpageOwnerViewRepository: Repository<WebpageOwnerView>,
 
     @InjectRepository(ViewRecord)
     private readonly viewRecordRepository: Repository<ViewRecord>,
-
-    @InjectRepository(Earn)
-    private readonly earnRepository: Repository<Earn>,
   ) {}
 
-  // FIXME: check IP
+  async upsertView(viewAdsDTO: ViewAdsDTO) {
+    //for prod get mounthLasted from contract
 
-  async upsertAds(createAdsDto: CreateAdsDTO) {
-    //For prod
-    // const currnetMonth = dayjs().month() + 1;
+    //for test
+    const currentMonth = viewAdsDTO.month;
+    const webpageOwnerWalletAddress = viewAdsDTO.webpageOwnerWalletAddress;
+    const ads = viewAdsDTO.ads;
+    // const chainId = viewAdsDTO.chainId;
 
-    //For test
-    const currentMonth = 3;
-    let ads = createAdsDto.ads;
-    let webpageOwnerWalletAddress = createAdsDto.webpageOwnerWalletAddress;
-    const { chainId } = createAdsDto;
-
-    //map lowercase
-    webpageOwnerWalletAddress = webpageOwnerWalletAddress.toLocaleLowerCase();
-    ads = ads.map((ad) => {
-      return ad.toLocaleLowerCase();
-    });
-
-    try {
-      const existingCampaign = await this.getCampaignByWalletAddress(
-        webpageOwnerWalletAddress,
-      );
-
-      if (existingCampaign) {
-        for await (const adItem of ads) {
-          const existingAd = await this.getAdById(adItem, existingCampaign.id);
-
-          if (existingAd) {
-            const viewRecord = await this.getViewRecordByAdId(
-              existingAd.id,
-              currentMonth,
-            );
-
-            //case not have month
-            if (!viewRecord) {
-              const viewRecord = this.viewRecordRepository.create();
-              viewRecord.month = currentMonth;
-              viewRecord.ad = existingAd;
-              await this.viewRecordRepository.save(viewRecord);
-            } else {
-              viewRecord.view++;
-              await this.viewRecordRepository.save(viewRecord);
-            }
-          } else {
-            const ad = this.adRepository.create();
-            ad.campaign = existingCampaign;
-            ad.regist_ad_id = adItem;
-            const addCreated = await this.adRepository.save(ad);
-
-            //viewRecord
-            const viewRecord = this.viewRecordRepository.create();
-            viewRecord.month = currentMonth;
-            viewRecord.ad = addCreated;
-
-            await this.viewRecordRepository.save(viewRecord);
-          }
-        }
-        return 'update success';
+    //webpageOwner
+    const existWebpageOwner = await this.getWebpageOwnerByWalletAddress(
+      webpageOwnerWalletAddress,
+    );
+    if (existWebpageOwner) {
+      //webpage owner
+      const webpageOwnerViews = await this.webpageOwnerViewRepository
+        .createQueryBuilder('webpageOwnerview')
+        .where('webpageOwnerview.webpageOwner_id = :webpageOwner_id', {
+          webpageOwner_id: existWebpageOwner.id,
+        })
+        .andWhere('webpageOwnerview.month = :month', { month: currentMonth })
+        .getOne();
+      if (!webpageOwnerViews) {
+        const webpageOwnerViews =
+          await this.webpageOwnerViewRepository.create();
+        webpageOwnerViews.month = currentMonth;
+        webpageOwnerViews.webpageOwner = existWebpageOwner;
+        await this.webpageOwnerViewRepository.save(webpageOwnerViews);
       } else {
-        //campain
+        webpageOwnerViews.view++;
+        await this.webpageOwnerViewRepository.save(webpageOwnerViews);
+      }
 
-        const campaign = this.campaignRepository.create();
-        campaign.web_owner_wallet_address = webpageOwnerWalletAddress;
-        campaign.chain_id = chainId;
-        const compainCreated = await this.campaignRepository.save(campaign);
+      //ad
+      for await (const ad of ads) {
+        const existAd = await this.adRepository
+          .createQueryBuilder('ad')
+          .where('ad.ad_id = :ad_id', { ad_id: ad['ad_id'] })
+          .andWhere('ad.chain_id = :chain_id', { chain_id: ad.chainId })
+          .getOne();
 
-        //ad
-        for await (const adItem of ads) {
-          const existingAd = await this.getAdById(adItem, campaign.id);
+        if (!existAd) {
+          //ad
+          const adCreate = await this.adRepository.create();
+          adCreate.ad_id = ad['ad_id'];
+          adCreate.chain_id = ad.chainId;
+          const adCreated = await this.adRepository.save(adCreate);
 
-          if (existingAd) {
-            const viewRecord = await this.getViewRecordByAdId(
-              existingAd.id,
-              currentMonth,
-            );
-            viewRecord.view++;
-            await this.viewRecordRepository.save(viewRecord);
+          //ad view
+          const view = await this.viewRecordRepository.create();
+          view.month = currentMonth;
+          view.ad = adCreated;
+
+          await this.viewRecordRepository.save(view);
+        } else {
+          const view = await this.viewRecordRepository
+            .createQueryBuilder('view')
+            .where('view.ad_id = :ad_id', { ad_id: existAd.id })
+            .andWhere('view.month = :month', { month: currentMonth })
+            .getOne();
+          if (!view) {
+            const view = await this.viewRecordRepository.create();
+            view.month = currentMonth;
+            view.ad = existAd;
+            await this.viewRecordRepository.save(view);
           } else {
-            const ad = this.adRepository.create();
-            ad.campaign = compainCreated;
-            ad.regist_ad_id = adItem;
-            const addCreated = await this.adRepository.save(ad);
+            console.log('have view');
 
-            //viewRecord
-            const viewRecord = this.viewRecordRepository.create();
-            viewRecord.month = currentMonth;
-            viewRecord.ad = addCreated;
-
-            await this.viewRecordRepository.save(viewRecord);
+            view.view++;
+            await this.viewRecordRepository.save(view);
           }
         }
-
-        return {
-          message: 'create success',
-        };
       }
-    } catch (error) {
-      throw new BadRequestException(`add campaign fail error:${error}`);
     }
-  }
-
-  async getCampaignByWalletAddress(walletAddress: string) {
-    try {
-      const campaign = await this.campaignRepository
-        .createQueryBuilder('campaign')
-        .where('campaign.web_owner_wallet_address = :id', { id: walletAddress })
-        .getOne();
-      return campaign;
-    } catch (error) {
-      throw new BadRequestException(`get ads by id fail error: ${error}`);
-    }
-  }
-
-  // async getAllAds() {
-  //   try {
-  //     const ads = await this.adRepository.find();
-  //     return ads;
-  //   } catch (error) {
-  //     throw new BadRequestException(`get all ads  error: ${error}`);
-  //   }
-  // }
-
-  async getAdById(registAdId: string, campaignId: number) {
-    try {
-      const ad = await this.adRepository
-        .createQueryBuilder('ads')
-        .where('ads.regist_ad_id = :id', { id: registAdId })
-        .andWhere('ads.campaign_id = :campaignId', { campaignId })
-        .getOne();
-      return ad;
-    } catch (error) {
-      throw new BadRequestException(`get ads by id fail error: ${error}`);
-    }
-  }
-
-  async getViewRecordByAdId(adId: number, currentmonth: number) {
-    try {
-      const viewRecord = await this.viewRecordRepository
-        .createQueryBuilder('viewrecord')
-        .where('viewrecord.ad_id = :adId', { adId })
-        .andWhere('viewrecord.month  = :currentmonth', { currentmonth })
-        .getOne();
-      return viewRecord;
-    } catch (error) {
-      throw new BadRequestException(
-        `get viewRecord by id fail error: ${error}`,
+    // new webpageOwner
+    else {
+      const webpageOwner = this.webpageOwnerRepository.create();
+      webpageOwner.wallet_address = webpageOwnerWalletAddress;
+      const webpageOwnerCreate = await this.webpageOwnerRepository.save(
+        webpageOwner,
       );
+
+      const webpageOwnerView = this.webpageOwnerViewRepository.create();
+      webpageOwnerView.month = currentMonth;
+      webpageOwnerView.webpageOwner = webpageOwnerCreate;
+      await this.webpageOwnerViewRepository.save(webpageOwnerView);
+
+      //ad
+      for await (const ad of ads) {
+        const adEnitity = this.adRepository.create();
+        adEnitity.ad_id = ad['ad_id'];
+        adEnitity.chain_id = ad.chainId;
+        const adCreated = await this.adRepository.save(adEnitity);
+
+        //adview
+        const view = await this.viewRecordRepository.create();
+        view.month = currentMonth;
+        view.ad = adCreated;
+
+        await this.viewRecordRepository.save(view);
+      }
     }
   }
 
-  // [for prod] 0 0 1 * *  = At 00:00 on day-of-month 1.
-  // [for test] 5 * * * * *  = every minute, on the 5th second
-  @Cron('* 0 0 1 * *')
-  handleCron() {
-    this.sendViewToContract();
-  }
-
-  async sendViewToContract() {
+  async getWebpageOwnerByWalletAddress(walletAddress: string) {
     try {
-      //get all adsView
-      // const allAds = await this.getAllAds();
-
-      //loop send view to contract
-      // allAds.map(async (ads) => {
-      console.log('call contract');
-      // const adsView = `${ads.view}`;
-      // const tx = await (this.contractSigner as any).setGreeting(adsView);
-      // await tx.wait();
-      console.log('greet =>', await (this.contractSigner as any).greet());
-
-      //reset view
-      // await this.resetViewByAdsId(ads.ads_id);
-      // });
-    } catch (error) {
-      throw new BadRequestException(
-        `process send view to contract fail error:${error}`,
-      );
-    }
-  }
-
-  // async resetViewByAdsId(adsId: string) {
-  //   try {
-  //     // const existingAds = await this.getAdById(adsId);
-  //     // existingAds.view = 0;
-  //     // await this.adRepository.save(existingAds);
-  //   } catch (error) {
-  //     throw new BadRequestException(`can not reset view by id error: ${error}`);
-  //   }
-  // }
-
-  async addTotalEarnByMonth(month: number) {
-    //call contract to get total earning by month pass month
-    //...
-    //mock
-    const totalMonthEarn = '10000';
-    try {
-      const earn = await this.earnRepository.create();
-      earn.month = month;
-      earn.value = totalMonthEarn;
-      await this.earnRepository.save(earn);
-      return earn;
-    } catch (error) {
-      throw new BadRequestException(
-        ` add total earn month: ${month} fail, error ${error}`,
-      );
-    }
-  }
-
-  async getTotalEarnByMonth(month: number) {
-    try {
-      const monthEarn = await this.earnRepository.findOne({
-        where: { month },
+      const webpageOwner = await this.webpageOwnerRepository.findOne({
+        where: { wallet_address: walletAddress },
       });
-      if (!monthEarn) {
-        return 0;
-      }
-      return monthEarn.value;
+      return webpageOwner;
     } catch (error) {
       throw new BadRequestException(
-        `get total earn by month:${month} fail, error: ${error}`,
+        `get webpage owner by id fail , error ${error}`,
       );
     }
   }
 
-  async getTotalAdViewByMonth(month: number) {
-    let viewsum = 0;
+  async getAdsViewByAdId(adId: string, month: number) {
+    try {
+      const ad = await this.adRepository.findOne({
+        where: { ad_id: adId },
+      });
+
+      const view = await this.viewRecordRepository
+        .createQueryBuilder('view')
+        .where('view.ad_id = :adId', { adId: ad.id })
+        .andWhere('view.month = :month', { month })
+        .getOne();
+      return {
+        month,
+        view: view.view,
+      };
+    } catch (error) {
+      throw new BadRequestException(`cant get ad view by adId: ${adId}`);
+    }
+  }
+
+  async getTotalAdView(month: number) {
+    let viewSum = 0;
     try {
       const views = await this.viewRecordRepository
         .createQueryBuilder('view')
         .where('view.month = :month', { month })
         .getMany();
+
       for await (const view of views) {
-        viewsum += view.view;
+        viewSum += view.view;
       }
-      return viewsum;
+      return {
+        month,
+        view: viewSum,
+      };
+    } catch (error) {
+      throw new BadRequestException(`getTotalAdView fail, error: ${error}`);
+    }
+  }
+
+  async getTotalWebpageOwnerView(month: number, walletAddress: string) {
+    try {
+      const webpageOwner = await this.webpageOwnerRepository.findOne({
+        where: { wallet_address: walletAddress },
+      });
+
+      const webpageOwnerView = await this.webpageOwnerViewRepository
+        .createQueryBuilder('webpageOwnerView')
+        .where('webpageOwnerView.webpageOwner_id = :webpageOwner_id', {
+          webpageOwner_id: webpageOwner.id,
+        })
+        .andWhere('webpageOwnerView.month = :month', { month })
+        .getOne();
+
+      return {
+        webpageOwnerWalletAdderss: walletAddress,
+        month,
+        view: webpageOwnerView.view,
+      };
     } catch (error) {
       throw new BadRequestException(
-        `get all total view in month:${month} fail, error: ${error}`,
+        `fai to getTotalWebpageOwnerView, error:${error}`,
       );
     }
   }
 
-  async getMyTotalAdViewByMonth(
+  async getRatioWebpageOwnerviewByAllwebpageOwner(
     month: number,
-    webpageOwnerWalletAddress: string,
+    walletAddress: string,
   ) {
-    let viewsum = 0;
-    const campaign = await this.getCampaignByWalletAddress(
-      webpageOwnerWalletAddress,
+    const webpageOwnerView = await this.getTotalWebpageOwnerView(
+      month,
+      walletAddress,
     );
 
-    const ads = await this.adRepository
-      .createQueryBuilder('ad')
-      .where('ad.campaign_id = :campaign_id', { campaign_id: campaign.id })
-      .getMany();
-
-    for await (const ad of ads) {
-      const view = await this.viewRecordRepository
-        .createQueryBuilder('view')
-        .where('view.ad_id = :ad_id', { ad_id: ad.id })
-        .andWhere('view.month = :month', { month })
-        .getOne();
-      if (!view) {
-        viewsum += 0;
-      } else {
-        viewsum += view.view;
-      }
+    const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
+      where: { month },
+    });
+    let totalWebpageOwnerViewSumSum = 0;
+    for await (const allwebpageOwnerView of allwebpageOwnerViews) {
+      totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
     }
 
-    return viewsum;
+    const ration = webpageOwnerView.view / totalWebpageOwnerViewSumSum;
+    return {
+      ration,
+      month,
+    };
   }
 
-  async getMyTotalEarnByView(month: number, webpageOwnerWalletAddress: string) {
-    const totalAdsView = await this.getTotalAdViewByMonth(month);
-    const mytotalAdsView = await this.getMyTotalAdViewByMonth(
-      month,
-      webpageOwnerWalletAddress,
+  @Cron('* 0 0 1 * *')
+  handleCron() {
+    const currentNonth = dayjs().month() + 1;
+    this.sendViewToContract(currentNonth);
+  }
+
+  async sendViewToContract(month: number) {
+    const webpageOwners = await this.webpageOwnerRepository.find();
+    // let sumAllWebpageOwnerView = 0;
+    const webPageOwnerView = [];
+    for await (const webpageOwner of webpageOwners) {
+      const weppageOwnerView = await this.webpageOwnerViewRepository
+        .createQueryBuilder('webpageOwnerView')
+        .where('webpageOwnerView.webpageOwner_id = :webpageOwner_id', {
+          webpageOwner_id: webpageOwner.id,
+        })
+        .andWhere('webpageOwnerView.month = :month', { month })
+        .getOne();
+
+      const view = weppageOwnerView.view;
+      webPageOwnerView.push(view);
+    }
+    const webpageOwnerArr = webpageOwners.map((item) => {
+      return item.wallet_address;
+    });
+    const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
+      where: { month },
+    });
+    let totalWebpageOwnerViewSumSum = 0;
+    for await (const allwebpageOwnerView of allwebpageOwnerViews) {
+      totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
+    }
+
+    // provider = getProvider();
+    // signer = getSigner();
+    // contract_bkc = contractAddress[0].contractAddress;
+    // contract_jfin = contractAddress[1].contractAddress;
+    // provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
+    // signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
+    // contractAddress = '0x64ADc655a088ea04a9B1929e9930c4e9E49D962e';
+
+    //BKC
+    //setup
+    const provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
+    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    const contractAddress = '0x138b32685a9EEf7c14c1587eE441F28Dd5dE2A68';
+    const billbosBKCContract = new ethers.Contract(
+      contractAddress,
+      abi,
+      provider,
     );
-    const totalEarn = await this.getTotalEarnByMonth(month);
+    const contractBillBosBKCSigner = billbosBKCContract.connect(signer);
+    const contractSigner = contractBillBosBKCSigner.connect(signer);
+    const tx = await (contractSigner as any).uploadAdsReport(
+      webpageOwnerArr,
+      webPageOwnerView,
+      totalWebpageOwnerViewSumSum,
+    );
+    await tx.wait();
+    console.log('done bkc');
 
-    console.log('totalAdsView', totalAdsView);
-    console.log('totalEarn', totalEarn);
-    console.log('mytotalAdsView', mytotalAdsView);
-
-    //formula
-    // totalAdsView = totalEarn
-    // mytotalAdsview
-
-    // 9 = 10000
-    // 6 = 10000 * 9 /
-
-    const yourEarnFromView: number =
-      (+totalEarn * mytotalAdsView) / totalAdsView;
-
-    return yourEarnFromView;
+    try {
+      //JFIN J2O Taro
+      // const provider = new JsonRpcProvider('');
+      // const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+      // const contractAddress = '';
+      // const billbosJ2OContract = new ethers.Contract(
+      //   contractAddress,
+      //   abi,
+      //   provider,
+      // );
+      // const contractBillBosJ2OSigner = billbosJ2OContract.connect(signer);
+      // const contractSigner = contractBillBosJ2OSigner.connect(signer);
+      // const tx = await (contractSigner as any).uploadAdsReport(
+      //   webpageOwnerArr,
+      //   webPageOwnerView,
+      //   totalWebpageOwnerViewSumSum,
+      // );
+      // await tx.wait();
+      console.log('done J20');
+      return {
+        message: "send webpage owner's view to contract success",
+      };
+    } catch (error) {
+      throw new error(
+        `call contract sendview to contract fail, error: ${error}`,
+      );
+    }
   }
 }

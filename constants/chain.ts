@@ -11,14 +11,14 @@ export const allowedNetwork: Record<string, any>[] = [
     blockExplorerUrls: ['https://testnet.bkcscan.com'],
   },
   {
-    chainId: 11155111,
-    chainName: 'sepolia',
+    chainId: 3502,
+    chainName: 'Fjin J2O Taro testnet',
     nativeCurrency: {
-      name: 'ETH',
-      symbol: 'sepoliaETH',
+      name: 'JFIN coin',
+      symbol: 'JFIN',
       decimals: 18,
     },
-    rpcUrls: ['https://ethereum-sepolia.publicnode.com'],
-    blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+    rpcUrls: ['https://rpc.testnet.jfinchain.com'],
+    blockExplorerUrls: ['https://exp.jfinchain.com'],
   },
 ];

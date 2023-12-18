@@ -21,7 +21,7 @@ export class ViewRecord {
   @Column()
   month: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 1 })
   view: number;
 
   @CreateDateColumn({

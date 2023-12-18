@@ -4,18 +4,28 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { WebpageOwner } from './webpageOwner.entity';
 
 @Entity()
-export class Earn {
+export class WebpageOwnerView {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   month: number;
 
-  @Column()
-  value: string;
+  @Column({ default: 1 })
+  view: number;
+
+  @ManyToOne(
+    () => WebpageOwner,
+    (webpageOwner) => webpageOwner.webpageOwnerView,
+  )
+  @JoinColumn({ name: 'webpageOwner_id' })
+  webpageOwner: WebpageOwner;
 
   @CreateDateColumn({
     type: 'timestamp',

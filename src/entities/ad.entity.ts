@@ -8,7 +8,6 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Campaign } from './campaign.entity';
 import { ViewRecord } from './viewRecord.entity';
 
 @Entity()
@@ -17,11 +16,10 @@ export class Ad {
   id: number;
 
   @Column()
-  regist_ad_id: string;
+  ad_id: string;
 
-  @ManyToOne(() => Campaign, (campaign) => campaign.ads)
-  @JoinColumn({ name: 'campaign_id' })
-  campaign: Campaign;
+  @Column()
+  chain_id: string;
 
   @OneToMany(() => ViewRecord, (viewRecord) => viewRecord.ad)
   viewRecord: ViewRecord[];
