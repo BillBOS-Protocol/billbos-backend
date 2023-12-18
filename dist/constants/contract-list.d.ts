@@ -1,1 +1,1 @@
-export declare const contractAddress: Record<string, any>[];
+export declare const contractBillBOSAddress: Record<string, any>[];

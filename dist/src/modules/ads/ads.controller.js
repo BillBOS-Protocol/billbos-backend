@@ -23,12 +23,16 @@ let AdsController = class AdsController {
     async upsertView(viewAdsDTO) {
         return await this.adsService.upsertView(viewAdsDTO);
     }
+    async sendViewToContract(query) {
+        const { month } = query;
+        return await this.adsService.sendViewToContract(month);
+    }
     async getAdsViewByAdId(query) {
         const { adId, month } = query;
         return await this.adsService.getAdsViewByAdId(adId, +month);
     }
     async getTotalAdView(query) {
-        const { month, a } = query;
+        const { month } = query;
         return await this.adsService.getTotalAdView(+month);
     }
     async getTotalWebpageOwnerView(query) {
@@ -47,6 +51,13 @@ __decorate([
     __metadata("design:paramtypes", [createAds_dto_1.ViewAdsDTO]),
     __metadata("design:returntype", Promise)
 ], AdsController.prototype, "upsertView", null);
+__decorate([
+    (0, common_1.Post)('sendView'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AdsController.prototype, "sendViewToContract", null);
 __decorate([
     (0, common_1.Get)('ad-view-by-adId'),
     __param(0, (0, common_1.Query)()),

@@ -4,6 +4,9 @@ export declare class AdsController {
     private readonly adsService;
     constructor(adsService: AdsService);
     upsertView(viewAdsDTO: ViewAdsDTO): Promise<void>;
+    sendViewToContract(query: any): Promise<{
+        message: string;
+    }>;
     getAdsViewByAdId(query: any): Promise<{
         month: number;
         view: number;

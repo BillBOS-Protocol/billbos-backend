@@ -25,26 +25,18 @@ const typeorm_1 = require("typeorm");
 const ad_entity_1 = require("../../entities/ad.entity");
 const typeorm_2 = require("@nestjs/typeorm");
 const ethers_1 = require("ethers");
-const wallet_util_1 = require("../../../utils/wallet.util");
-const contract_list_1 = require("../../../constants/contract-list");
+const schedule_1 = require("@nestjs/schedule");
 const viewRecord_entity_1 = require("../../entities/viewRecord.entity");
+const dayjs = require("dayjs");
 const webpageOwner_entity_1 = require("../../entities/webpageOwner.entity");
 const pageOwnerView_entity_1 = require("../../entities/pageOwnerView.entity");
+const abi_1 = require("../../../constants/abi");
 let AdsService = class AdsService {
     constructor(adRepository, webpageOwnerRepository, webpageOwnerViewRepository, viewRecordRepository) {
         this.adRepository = adRepository;
         this.webpageOwnerRepository = webpageOwnerRepository;
         this.webpageOwnerViewRepository = webpageOwnerViewRepository;
         this.viewRecordRepository = viewRecordRepository;
-        this.provider = (0, wallet_util_1.getProvider)();
-        this.signer = (0, wallet_util_1.getSigner)();
-        this.contract = contract_list_1.contractAddress[0].contractAddress;
-        this.abi = [
-            'function setGreeting(string memory _greeting) public',
-            'function greet() public view returns (string memory)',
-        ];
-        this.greetContract = new ethers_1.ethers.Contract(this.contract, this.abi, this.provider);
-        this.contractSigner = this.greetContract.connect(this.signer);
     }
     async upsertView(viewAdsDTO) {
         var _a, e_1, _b, _c, _d, e_2, _e, _f;
@@ -252,11 +244,9 @@ let AdsService = class AdsService {
     async getRatioWebpageOwnerviewByAllwebpageOwner(month, walletAddress) {
         var _a, e_4, _b, _c;
         const webpageOwnerView = await this.getTotalWebpageOwnerView(month, walletAddress);
-        console.log('🚀 ~ file: ads.service.ts:239 ~ AdsService ~ webpageOwnerView:', webpageOwnerView);
         const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
             where: { month },
         });
-        console.log('🚀 ~ file: ads.service.ts:243 ~ AdsService ~ allwebpageOwnerViews:', allwebpageOwnerViews);
         let totalWebpageOwnerViewSumSum = 0;
         try {
             for (var _d = true, allwebpageOwnerViews_1 = __asyncValues(allwebpageOwnerViews), allwebpageOwnerViews_1_1; allwebpageOwnerViews_1_1 = await allwebpageOwnerViews_1.next(), _a = allwebpageOwnerViews_1_1.done, !_a;) {
@@ -284,7 +274,95 @@ let AdsService = class AdsService {
             month,
         };
     }
+    handleCron() {
+        const currentNonth = dayjs().month() + 1;
+        this.sendViewToContract(currentNonth);
+    }
+    async sendViewToContract(month) {
+        var _a, e_5, _b, _c, _d, e_6, _e, _f;
+        const webpageOwners = await this.webpageOwnerRepository.find();
+        const webPageOwnerView = [];
+        try {
+            for (var _g = true, webpageOwners_1 = __asyncValues(webpageOwners), webpageOwners_1_1; webpageOwners_1_1 = await webpageOwners_1.next(), _a = webpageOwners_1_1.done, !_a;) {
+                _c = webpageOwners_1_1.value;
+                _g = false;
+                try {
+                    const webpageOwner = _c;
+                    const weppageOwnerView = await this.webpageOwnerViewRepository
+                        .createQueryBuilder('webpageOwnerView')
+                        .where('webpageOwnerView.webpageOwner_id = :webpageOwner_id', {
+                        webpageOwner_id: webpageOwner.id,
+                    })
+                        .andWhere('webpageOwnerView.month = :month', { month })
+                        .getOne();
+                    const view = weppageOwnerView.view;
+                    webPageOwnerView.push(view);
+                }
+                finally {
+                    _g = true;
+                }
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (!_g && !_a && (_b = webpageOwners_1.return)) await _b.call(webpageOwners_1);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
+        const webpageOwnerArr = webpageOwners.map((item) => {
+            return item.wallet_address;
+        });
+        const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
+            where: { month },
+        });
+        let totalWebpageOwnerViewSumSum = 0;
+        try {
+            for (var _h = true, allwebpageOwnerViews_2 = __asyncValues(allwebpageOwnerViews), allwebpageOwnerViews_2_1; allwebpageOwnerViews_2_1 = await allwebpageOwnerViews_2.next(), _d = allwebpageOwnerViews_2_1.done, !_d;) {
+                _f = allwebpageOwnerViews_2_1.value;
+                _h = false;
+                try {
+                    const allwebpageOwnerView = _f;
+                    totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
+                }
+                finally {
+                    _h = true;
+                }
+            }
+        }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        finally {
+            try {
+                if (!_h && !_d && (_e = allwebpageOwnerViews_2.return)) await _e.call(allwebpageOwnerViews_2);
+            }
+            finally { if (e_6) throw e_6.error; }
+        }
+        const provider = new ethers_1.JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
+        const signer = new ethers_1.ethers.Wallet(process.env.PRIVATE_KEY, provider);
+        const contractAddress = '0x138b32685a9EEf7c14c1587eE441F28Dd5dE2A68';
+        const billbosBKCContract = new ethers_1.ethers.Contract(contractAddress, abi_1.abi, provider);
+        const contractBillBosBKCSigner = billbosBKCContract.connect(signer);
+        const contractSigner = contractBillBosBKCSigner.connect(signer);
+        const tx = await contractSigner.uploadAdsReport(webpageOwnerArr, webPageOwnerView, totalWebpageOwnerViewSumSum);
+        await tx.wait();
+        console.log('done bkc');
+        try {
+            console.log('done J20');
+            return {
+                message: "send webpage owner's view to contract success",
+            };
+        }
+        catch (error) {
+            throw new error(`call contract sendview to contract fail, error: ${error}`);
+        }
+    }
 };
+__decorate([
+    (0, schedule_1.Cron)('* 0 0 1 * *'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdsService.prototype, "handleCron", null);
 AdsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(ad_entity_1.Ad)),

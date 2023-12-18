@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ViewAdsDTO } from './dto/createAds.dto';
 import { AdsService } from './ads.service';
 
@@ -11,6 +11,12 @@ export class AdsController {
     return await this.adsService.upsertView(viewAdsDTO);
   }
 
+  @Post('sendView')
+  async sendViewToContract(@Query() query) {
+    const { month } = query;
+    return await this.adsService.sendViewToContract(month);
+  }
+
   @Get('ad-view-by-adId')
   async getAdsViewByAdId(@Query() query) {
     const { adId, month } = query;
@@ -19,7 +25,7 @@ export class AdsController {
 
   @Get('total-ad-view')
   async getTotalAdView(@Query() query) {
-    const { month, a } = query;
+    const { month } = query;
     return await this.adsService.getTotalAdView(+month);
   }
 
@@ -41,47 +47,4 @@ export class AdsController {
       walletAddress,
     );
   }
-
-  //core
-  // @Post()
-  // async upsertAds(@Body() createAdsDto: CreateAdsDTO) {
-  //   return this.adsService.upsertAds(createAdsDto);
-  // }
-
-  // //manual sendview to contract
-  // @Post('sendview')
-  // async sendViewToContract() {
-  //   return this.adsService.sendViewToContract();
-  // }
-
-  // @Post('add-total-earn-by-month')
-  // async addTotalEarnByMonth() {
-  //   return await this.adsService.addTotalEarnByMonth(3);
-  // }
-
-  // @Get('total-earn/:month')
-  // async getTotalEarnByMonth(@Param('month') month) {
-  //   return this.adsService.getTotalEarnByMonth(month);
-  // }
-
-  // @Get('total-ad-view')
-  // async getTotalAdViewByMonth() {
-  //   return await this.adsService.getTotalAdViewByMonth(3);
-  // }
-
-  // @Get('my-total-ad-view')
-  // async getMyTotalAdViewByMonth() {
-  //   return await this.adsService.getMyTotalAdViewByMonth(
-  //     3,
-  //     '0x443fe6af640c1e6dec1efc4468451e6765152e94',
-  //   );
-  // }
-
-  // @Get('get-my-total-earn-by-view')
-  // async getEarnByView() {
-  //   return await this.adsService.getMyTotalEarnByView(
-  //     3,
-  //     '0x443fe6af640c1e6dec1efc4468451e6765152e94',
-  //   );
-  // }
 }
