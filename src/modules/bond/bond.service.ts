@@ -61,6 +61,7 @@ export class BondService {
       unique_id: newMaps[index].unique_id,
       name_th: newMaps[index].name_th,
     }));
-    return mergedArray;
+    const shiftmergedArray = mergedArray.slice(1);
+    return shiftmergedArray;
   }
 }
