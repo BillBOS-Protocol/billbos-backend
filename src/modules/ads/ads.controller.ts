@@ -19,8 +19,8 @@ export class AdsController {
 
   @Get('ad-view-by-adId')
   async getAdsViewByAdId(@Query() query) {
-    const { adId, month } = query;
-    return await this.adsService.getAdsViewByAdId(adId, +month);
+    const { adId, month, chainId } = query;
+    return await this.adsService.getAdsViewByAdId(adId, +month, chainId);
   }
 
   @Get('total-ad-view')

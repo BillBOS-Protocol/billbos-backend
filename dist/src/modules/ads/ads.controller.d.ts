@@ -9,6 +9,7 @@ export declare class AdsController {
     }>;
     getAdsViewByAdId(query: any): Promise<{
         month: number;
+        chainId: number;
         view: number;
     }>;
     getTotalAdView(query: any): Promise<{

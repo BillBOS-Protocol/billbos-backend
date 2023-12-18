@@ -28,8 +28,8 @@ let AdsController = class AdsController {
         return await this.adsService.sendViewToContract(month);
     }
     async getAdsViewByAdId(query) {
-        const { adId, month } = query;
-        return await this.adsService.getAdsViewByAdId(adId, +month);
+        const { adId, month, chainId } = query;
+        return await this.adsService.getAdsViewByAdId(adId, +month, chainId);
     }
     async getTotalAdView(query) {
         const { month } = query;

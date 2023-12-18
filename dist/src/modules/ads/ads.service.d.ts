@@ -12,8 +12,9 @@ export declare class AdsService {
     constructor(adRepository: Repository<Ad>, webpageOwnerRepository: Repository<WebpageOwner>, webpageOwnerViewRepository: Repository<WebpageOwnerView>, viewRecordRepository: Repository<ViewRecord>);
     upsertView(viewAdsDTO: ViewAdsDTO): Promise<void>;
     getWebpageOwnerByWalletAddress(walletAddress: string): Promise<WebpageOwner>;
-    getAdsViewByAdId(adId: string, month: number): Promise<{
+    getAdsViewByAdId(adId: string, month: number, chainId: number): Promise<{
         month: number;
+        chainId: number;
         view: number;
     }>;
     getTotalAdView(month: number): Promise<{

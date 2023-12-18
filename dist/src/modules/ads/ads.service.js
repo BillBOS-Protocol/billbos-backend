@@ -163,11 +163,13 @@ let AdsService = class AdsService {
             throw new common_1.BadRequestException(`get webpage owner by id fail , error ${error}`);
         }
     }
-    async getAdsViewByAdId(adId, month) {
+    async getAdsViewByAdId(adId, month, chainId) {
         try {
-            const ad = await this.adRepository.findOne({
-                where: { ad_id: adId },
-            });
+            const ad = await this.adRepository
+                .createQueryBuilder('ad')
+                .where('ad.ad_id = :adId', { adId })
+                .andWhere('ad.chain_id = :chainId', { chainId })
+                .getOne();
             const view = await this.viewRecordRepository
                 .createQueryBuilder('view')
                 .where('view.ad_id = :adId', { adId: ad.id })
@@ -175,11 +177,12 @@ let AdsService = class AdsService {
                 .getOne();
             return {
                 month,
+                chainId,
                 view: view.view,
             };
         }
         catch (error) {
-            throw new common_1.BadRequestException(`cant get ad view by adId: ${adId}`);
+            throw new common_1.BadRequestException(`cant get ad view by adId: ${adId}, error:${error}`);
         }
     }
     async getTotalAdView(month) {
@@ -339,7 +342,7 @@ let AdsService = class AdsService {
         }
         const provider = new ethers_1.JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
         const signer = new ethers_1.ethers.Wallet(process.env.PRIVATE_KEY, provider);
-        const contractAddress = '0x138b32685a9EEf7c14c1587eE441F28Dd5dE2A68';
+        const contractAddress = '0x8995e9741A2b9c7f1Bb982d08c360F2951a23c24';
         const billbosBKCContract = new ethers_1.ethers.Contract(contractAddress, abi_1.abi, provider);
         const contractBillBosBKCSigner = billbosBKCContract.connect(signer);
         const contractSigner = contractBillBosBKCSigner.connect(signer);

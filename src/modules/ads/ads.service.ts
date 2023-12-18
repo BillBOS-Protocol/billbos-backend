@@ -830,11 +830,17 @@ export class AdsService {
     }
   }
 
-  async getAdsViewByAdId(adId: string, month: number) {
+  async getAdsViewByAdId(adId: string, month: number, chainId: number) {
     try {
-      const ad = await this.adRepository.findOne({
-        where: { ad_id: adId },
-      });
+      // const ad = await this.adRepository.findOne({
+      //   where: { ad_id: adId },
+      // });
+
+      const ad = await this.adRepository
+        .createQueryBuilder('ad')
+        .where('ad.ad_id = :adId', { adId })
+        .andWhere('ad.chain_id = :chainId', { chainId })
+        .getOne();
 
       const view = await this.viewRecordRepository
         .createQueryBuilder('view')
@@ -843,10 +849,13 @@ export class AdsService {
         .getOne();
       return {
         month,
+        chainId,
         view: view.view,
       };
     } catch (error) {
-      throw new BadRequestException(`cant get ad view by adId: ${adId}`);
+      throw new BadRequestException(
+        `cant get ad view by adId: ${adId}, error:${error}`,
+      );
     }
   }
 
