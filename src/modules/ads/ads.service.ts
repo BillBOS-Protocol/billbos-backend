@@ -239,9 +239,9 @@ export class AdsService {
       totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
     }
 
-    const ration = webpageOwnerView.view / totalWebpageOwnerViewSumSum;
+    const ratio = webpageOwnerView.view / totalWebpageOwnerViewSumSum;
     return {
-      ration,
+      ratio,
       month,
     };
   }
