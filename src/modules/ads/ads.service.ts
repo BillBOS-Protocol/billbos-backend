@@ -287,7 +287,7 @@ export class AdsService {
     //setup
     const provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-    const contractAddress = '0x8995e9741A2b9c7f1Bb982d08c360F2951a23c24';
+    const contractAddress = '0xD8D21C24F8513E35bdC26832aD366ac2F4EE0d7F';
     const billbosBKCContract = new ethers.Contract(
       contractAddress,
       abi,
@@ -307,7 +307,7 @@ export class AdsService {
       //JFIN J2O Taro
       const provider = new JsonRpcProvider('https://rpc.j2o.io/');
       const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-      const contractAddress = '0x9d8b5e3C762167a409Db7f11a38b17dE9192E136';
+      const contractAddress = '0x21559144afcD0C2E3Ba5D0A6e41c46276663983B';
       const billbosJ2OContract = new ethers.Contract(
         contractAddress,
         abi,
