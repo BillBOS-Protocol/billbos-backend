@@ -7,6 +7,6 @@ export class BondController {
 
   @Get()
   async getTestBond() {
-    return await this.bondService.getTestBond();
+    return await this.bondService.getBond();
   }
 }
