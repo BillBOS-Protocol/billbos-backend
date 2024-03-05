@@ -7,8 +7,3 @@ export class GetAdViewByAdId {
   @IsNumber()
   month: number;
 }
-
-export class adObject {
-  adId: string;
-  chainId: string;
-}

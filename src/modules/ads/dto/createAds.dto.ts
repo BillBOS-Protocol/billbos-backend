@@ -8,10 +8,13 @@ export class ViewAdsDTO {
   month: number;
 
   @IsArray()
-  ads: adObject[];
+  ads: AdObject[];
 }
 
-export class adObject {
-  adId: string;
+export class AdObject {
+  @IsString()
+  ad_id: string;
+
+  @IsString()
   chainId: string;
 }
