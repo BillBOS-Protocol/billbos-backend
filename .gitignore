@@ -1,6 +1,7 @@
 # compiled output
 
 /dist
+/dist/tsconfig.build.tsbuildinfo
 /node_modules
 .env
 
