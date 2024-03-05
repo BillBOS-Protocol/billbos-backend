@@ -1,12 +1,12 @@
-import { allowedNetwork } from 'constants/chain';
+// import { allowedNetwork } from 'constants/chain';
 import { ethers } from 'ethers';
 
-export const getProvider = () => {
-  const provider = new ethers.JsonRpcProvider(allowedNetwork[1].rpcUrls[0]);
+export const getProvider = (rpc: string) => {
+  const provider = new ethers.JsonRpcProvider(rpc);
   return provider;
 };
 
-export const getSigner = (): ethers.Wallet | null => {
+export const getSigner = (rpc: string): ethers.Wallet | null => {
   const pk =
     typeof process.env.PRIVATE_KEY !== 'undefined'
       ? process.env.PRIVATE_KEY
@@ -14,7 +14,7 @@ export const getSigner = (): ethers.Wallet | null => {
   if (pk === '') {
     return null;
   }
-  const provider = getProvider();
+  const provider = getProvider(rpc);
   const signer = new ethers.Wallet(pk, provider);
   return signer;
 };
