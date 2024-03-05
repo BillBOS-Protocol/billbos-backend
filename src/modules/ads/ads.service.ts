@@ -10,7 +10,7 @@ import { ViewRecord } from 'src/database/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
 import { WebpageOwner } from 'src/database/entities/webpageOwner.entity';
 import { WebpageOwnerView } from 'src/database/entities/pageOwnerView.entity';
-import { BillBOSCore_ABI } from 'constants/abis/billbos-core.abi';
+import { BillBOSCore_ABI } from 'src/constants/abis/billbos-core.abi';
 
 @Injectable()
 export class AdsService {
