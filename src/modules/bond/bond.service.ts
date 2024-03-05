@@ -1,24 +1,28 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { lastValueFrom, map } from 'rxjs';
 
 @Injectable()
 export class BondService {
-  async getTestBond() {
+  constructor(private readonly httpService: HttpService) {}
+
+  async getBond() {
     const body = {
       SecurityCode: 'C0000000013',
     };
-    const res = await fetch('https://api.sec.or.th/bond/outstanding/issue', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      // Request headers
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
-      },
-    });
-    const bondResArr = await res.json();
+    const bond = await lastValueFrom(
+      this.httpService
+        .post('https://api.sec.or.th/bond/outstanding/issue', body, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
+          },
+        })
+        .pipe(map((res) => res.data)),
+    );
 
-    const newMaps = bondResArr.map(({ issued_ref_id, unique_id, name_th }) => ({
+    const newMaps = bond.map(({ issued_ref_id, unique_id, name_th }) => ({
       issued_ref_id,
       unique_id,
       name_th,
@@ -26,19 +30,22 @@ export class BondService {
 
     const bondRateArr = [];
     for await (const newMap of newMaps) {
-      const resCupon = await fetch(
-        `https://api.sec.or.th/bond/outstanding/${newMap.issued_ref_id}/coupon`,
-        {
-          method: 'GET',
-          // Request headers
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
-          },
-        },
-      );
-      const resres = await resCupon.json();
-      bondRateArr.push(resres);
+      try {
+        const resCupon = await lastValueFrom(
+          this.httpService.get(
+            `https://api.sec.or.th/bond/outstanding/${newMap.issued_ref_id}/coupon`,
+            {
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Ocp-Apim-Subscription-Key': process.env.SECAPI_KEY,
+              },
+            },
+          ),
+        );
+        bondRateArr.push(resCupon.data);
+      } catch (error) {
+        console.error('HTTP request error:', error);
+      }
     }
 
     const transformedArray = bondRateArr.flatMap((innerArray) =>
