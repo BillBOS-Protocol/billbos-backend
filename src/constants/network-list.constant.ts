@@ -1,21 +1,5 @@
 import { Network_ID } from './network-id.enum';
 
-// type AddressType<T> = T extends Network_ID.Mainnet
-//   ? typeof sepolia
-//   : T extends Network_ID.Sepolia
-//   ? typeof bkcTest
-//   : T extends Network_ID.BkcTest
-//   ? typeof mainnet
-//   : null;
-
-// export const getNetworkChain = <T extends Network_ID>(networkID: T) => {
-//   switch (networkID) {
-//     case Network_ID.BkcTest:
-//       return bkcTest as AddressType<T>;
-//     default:
-//   }
-// };
-
 export const NETWORK_LIST = {
   [Network_ID.BkcTest]: {
     id: 25925,

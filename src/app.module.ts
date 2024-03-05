@@ -1,18 +1,22 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { configService } from './configs/config.service';
 import { AdsModule } from './modules/ads/ads.module';
-import { ScheduleModule } from '@nestjs/schedule';
 import { BondModule } from './modules/bond/bond.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     AdsModule,
     ScheduleModule.forRoot(),
     BondModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
