@@ -4,17 +4,13 @@ import { Repository } from 'typeorm';
 import { Ad } from 'src/entities/ad.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JsonRpcProvider, ethers } from 'ethers';
-import { getProvider, getSigner } from 'utils/wallet.util';
 import { Cron } from '@nestjs/schedule';
-import { contractBillBOSAddress } from 'constants/contract-list';
 
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import * as dayjs from 'dayjs';
-import { log } from 'console';
-import { create } from 'domain';
 import { WebpageOwner } from 'src/entities/webpageOwner.entity';
 import { WebpageOwnerView } from 'src/entities/pageOwnerView.entity';
-import { abi } from 'constants/abi';
+import { BillBOSCore_ABI } from 'constants/abis/billbos-core.abi';
 
 @Injectable()
 export class AdsService {
@@ -149,10 +145,6 @@ export class AdsService {
 
   async getAdsViewByAdId(adId: string, month: number, chainId: number) {
     try {
-      // const ad = await this.adRepository.findOne({
-      //   where: { ad_id: adId },
-      // });
-
       const ad = await this.adRepository
         .createQueryBuilder('ad')
         .where('ad.ad_id = :adId', { adId })
@@ -217,7 +209,7 @@ export class AdsService {
       };
     } catch (error) {
       throw new BadRequestException(
-        `fai to getTotalWebpageOwnerView, error:${error}`,
+        `failed to getTotalWebpageOwnerView, error:${error}`,
       );
     }
   }
@@ -290,7 +282,7 @@ export class AdsService {
     const contractAddress = '0xD8D21C24F8513E35bdC26832aD366ac2F4EE0d7F';
     const billbosBKCContract = new ethers.Contract(
       contractAddress,
-      abi,
+      BillBOSCore_ABI,
       provider,
     );
     const contractBillBosBKCSigner = billbosBKCContract.connect(signer);
@@ -304,13 +296,13 @@ export class AdsService {
     console.log('done bkc');
 
     try {
-      //JFIN J2O Taro
+      // J2O Taro
       const provider = new JsonRpcProvider('https://rpc.j2o.io/');
       const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
       const contractAddress = '0x21559144afcD0C2E3Ba5D0A6e41c46276663983B';
       const billbosJ2OContract = new ethers.Contract(
         contractAddress,
-        abi,
+        BillBOSCore_ABI,
         provider,
       );
       const contractBillBosJ2OSigner = billbosJ2OContract.connect(signer);

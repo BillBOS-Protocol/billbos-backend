@@ -5,8 +5,6 @@ import { WebpageOwner } from 'src/entities/webpageOwner.entity';
 import { ViewRecord } from 'src/entities/viewRecord.entity';
 import { WebpageOwnerView } from 'src/entities/pageOwnerView.entity';
 
-// require('dotenv').config();
-
 class ConfigService {
   constructor(private env: { [k: string]: string | undefined }) {}
 
@@ -45,15 +43,11 @@ class ConfigService {
       // entities: ['**/*.entity{.ts,.js}'],
       entities: [Ad, WebpageOwner, WebpageOwnerView, ViewRecord],
       synchronize: true,
-
       // migrationsTableName: 'migration',
-
       // migrations: ['src/migration/*.ts'],
-
       // cli: {
       //   migrationsDir: 'src/migration',
       // },
-
       // ssl: this.isProduction(),
     };
   }

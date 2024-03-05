@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
 
 @Injectable()
 export class BondService {
@@ -19,14 +18,12 @@ export class BondService {
     });
     const bondResArr = await res.json();
 
-    //array1
     const newMaps = bondResArr.map(({ issued_ref_id, unique_id, name_th }) => ({
       issued_ref_id,
       unique_id,
       name_th,
     }));
 
-    // console.log('newMap =>', newMaps);
     const bondRateArr = [];
     for await (const newMap of newMaps) {
       const resCupon = await fetch(
@@ -43,9 +40,7 @@ export class BondService {
       const resres = await resCupon.json();
       bondRateArr.push(resres);
     }
-    // console.log('bondRateArr', bondRateArr);
 
-    //array2
     const transformedArray = bondRateArr.flatMap((innerArray) =>
       innerArray.map((obj) => ({
         coupon_code: obj.coupon_code,
