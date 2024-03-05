@@ -11,6 +11,8 @@ import * as dayjs from 'dayjs';
 import { WebpageOwner } from 'src/database/entities/webpageOwner.entity';
 import { WebpageOwnerView } from 'src/database/entities/pageOwnerView.entity';
 import { BillBOSCore_ABI } from 'src/constants/abis/billbos-core.abi';
+import { getAddressList, getChain } from 'utils/chain.util';
+import { Network_ID } from 'src/constants/network-id.enum';
 
 @Injectable()
 export class AdsService {
@@ -29,15 +31,12 @@ export class AdsService {
   ) {}
 
   async upsertView(viewAdsDTO: ViewAdsDTO) {
-    //for prod get mounthLasted from contract
-
-    //for test
     const currentMonth = viewAdsDTO.month;
     const webpageOwnerWalletAddress = viewAdsDTO.webpageOwnerWalletAddress;
     const ads = viewAdsDTO.ads;
     // const chainId = viewAdsDTO.chainId;
 
-    //webpageOwner
+    // check webpageOwner is existed ??
     const existWebpageOwner = await this.getWebpageOwnerByWalletAddress(
       webpageOwnerWalletAddress,
     );
@@ -51,8 +50,7 @@ export class AdsService {
         .andWhere('webpageOwnerview.month = :month', { month: currentMonth })
         .getOne();
       if (!webpageOwnerViews) {
-        const webpageOwnerViews =
-          await this.webpageOwnerViewRepository.create();
+        const webpageOwnerViews = this.webpageOwnerViewRepository.create();
         webpageOwnerViews.month = currentMonth;
         webpageOwnerViews.webpageOwner = existWebpageOwner;
         await this.webpageOwnerViewRepository.save(webpageOwnerViews);
@@ -60,7 +58,6 @@ export class AdsService {
         webpageOwnerViews.view++;
         await this.webpageOwnerViewRepository.save(webpageOwnerViews);
       }
-
       //ad
       for await (const ad of ads) {
         const existAd = await this.adRepository
@@ -77,7 +74,7 @@ export class AdsService {
           const adCreated = await this.adRepository.save(adCreate);
 
           //ad view
-          const view = await this.viewRecordRepository.create();
+          const view = this.viewRecordRepository.create();
           view.month = currentMonth;
           view.ad = adCreated;
 
@@ -89,7 +86,7 @@ export class AdsService {
             .andWhere('view.month = :month', { month: currentMonth })
             .getOne();
           if (!view) {
-            const view = await this.viewRecordRepository.create();
+            const view = this.viewRecordRepository.create();
             view.month = currentMonth;
             view.ad = existAd;
             await this.viewRecordRepository.save(view);
@@ -169,16 +166,15 @@ export class AdsService {
   }
 
   async getTotalAdView(month: number) {
-    let viewSum = 0;
     try {
       const views = await this.viewRecordRepository
         .createQueryBuilder('view')
         .where('view.month = :month', { month })
         .getMany();
 
-      for await (const view of views) {
-        viewSum += view.view;
-      }
+      const viewSum = views.reduce((acc, cur) => {
+        return acc + cur.view;
+      }, 0);
       return {
         month,
         view: viewSum,
@@ -226,10 +222,13 @@ export class AdsService {
     const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
       where: { month },
     });
-    let totalWebpageOwnerViewSumSum = 0;
-    for await (const allwebpageOwnerView of allwebpageOwnerViews) {
-      totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
-    }
+
+    const totalWebpageOwnerViewSumSum = allwebpageOwnerViews.reduce(
+      (acc, cur) => {
+        return acc + cur.view;
+      },
+      0,
+    );
 
     const ratio = webpageOwnerView.view / totalWebpageOwnerViewSumSum;
     return {
@@ -270,16 +269,21 @@ export class AdsService {
     const allwebpageOwnerViews = await this.webpageOwnerViewRepository.find({
       where: { month },
     });
-    let totalWebpageOwnerViewSumSum = 0;
-    for await (const allwebpageOwnerView of allwebpageOwnerViews) {
-      totalWebpageOwnerViewSumSum += allwebpageOwnerView.view;
-    }
+
+    const totalWebpageOwnerViewSumSum = allwebpageOwnerViews.reduce(
+      (acc, cur) => {
+        return acc + cur.view;
+      },
+      0,
+    );
 
     //BKC
     //setup
-    const provider = new JsonRpcProvider('https://rpc-testnet.bitkubchain.io');
+    const provider = new JsonRpcProvider(
+      getChain(Network_ID.BkcTest).rpcUrls[0],
+    );
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-    const contractAddress = '0xD8D21C24F8513E35bdC26832aD366ac2F4EE0d7F';
+    const contractAddress = getAddressList(Network_ID.BkcTest).BillBOSCore;
     const billbosBKCContract = new ethers.Contract(
       contractAddress,
       BillBOSCore_ABI,
@@ -297,9 +301,11 @@ export class AdsService {
 
     try {
       // J2O Taro
-      const provider = new JsonRpcProvider('https://rpc.j2o.io/');
+      const provider = new JsonRpcProvider(
+        getChain(Network_ID.J2OTaro).rpcUrls[0],
+      );
       const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-      const contractAddress = '0x21559144afcD0C2E3Ba5D0A6e41c46276663983B';
+      const contractAddress = getAddressList(Network_ID.J2OTaro).BillBOSCore;
       const billbosJ2OContract = new ethers.Contract(
         contractAddress,
         BillBOSCore_ABI,

@@ -11,26 +11,30 @@ export class AdsController {
     return await this.adsService.upsertView(viewAdsDTO);
   }
 
-  @Post('sendView')
+  @Post('send-view')
   async sendViewToContract(@Query() query) {
     const { month } = query;
     return await this.adsService.sendViewToContract(month);
   }
 
   @Get('ad-view-by-adId')
-  async getAdsViewByAdId(@Query() query) {
+  async getAdsViewByAdId(
+    @Query() query: { adId: string; month: string; chainId: string },
+  ) {
     const { adId, month, chainId } = query;
-    return await this.adsService.getAdsViewByAdId(adId, +month, chainId);
+    return await this.adsService.getAdsViewByAdId(adId, +month, +chainId);
   }
 
   @Get('total-ad-view')
-  async getTotalAdView(@Query() query) {
+  async getTotalAdView(@Query() query: { month: string }) {
     const { month } = query;
     return await this.adsService.getTotalAdView(+month);
   }
 
   @Get('total-webpageowner-view-by-owner-address')
-  async getTotalWebpageOwnerView(@Query() query) {
+  async getTotalWebpageOwnerView(
+    @Query() query: { month: string; walletAddress: string },
+  ) {
     const { month, walletAddress } = query;
 
     return await this.adsService.getTotalWebpageOwnerView(
@@ -40,7 +44,9 @@ export class AdsController {
   }
 
   @Get('ratio-webpageOwnerview-by-allwebpageOwner')
-  async getRatioWebpageOwnerviewByAllwebpageOwner(@Query() query) {
+  async getRatioWebpageOwnerviewByAllwebpageOwner(
+    @Query() query: { month: string; walletAddress: string },
+  ) {
     const { month, walletAddress } = query;
     return await this.adsService.getRatioWebpageOwnerviewByAllwebpageOwner(
       +month,
